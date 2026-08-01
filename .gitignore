@@ -9,5 +9,6 @@ __pycache__/
 *.pyc
 frontend/node_modules/
 frontend/dist/
+*.tsbuildinfo
 coverage/
 .codex-run/

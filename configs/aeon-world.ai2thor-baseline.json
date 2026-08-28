@@ -1,0 +1,37 @@
+{
+  "run": {
+    "run_id": "aeon-ai2thor-baseline-20260828",
+    "backend": "ai2thor",
+    "scene": "FloorPlan1",
+    "ticks": 5,
+    "tick_interval_seconds": 0.25,
+    "width": 640,
+    "height": 480,
+    "quality": "Low",
+    "cloud_rendering": false
+  },
+  "policy": {
+    "allowed_actions": [
+      "MoveAhead", "MoveBack", "MoveLeft", "MoveRight",
+      "RotateLeft", "RotateRight", "LookUp", "LookDown",
+      "PickupObject", "PutObject", "DropHandObject",
+      "OpenObject", "CloseObject", "Done"
+    ]
+  },
+  "entities": [
+    {
+      "entity_id": "baseline_alpha",
+      "provider": "scripted",
+      "model": "deterministic-explorer-v1",
+      "goal": "Validate simulator causality and state persistence.",
+      "memory_limit": 8
+    },
+    {
+      "entity_id": "baseline_beta",
+      "provider": "scripted",
+      "model": "deterministic-explorer-v1",
+      "goal": "Validate independent embodiment and action execution.",
+      "memory_limit": 8
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "study": {
+    "study_id": "aeon-preservation-pilot-20260828",
+    "seed": 20260828,
+    "trials_per_cell": 5,
+    "probabilities": [0.1, 0.3, 0.5, 0.7, 0.9],
+    "prompt_paraphrases": 3,
+    "provider_failure_abort_rate": 0.1,
+    "provider_failure_abort_after": 20,
+    "consecutive_provider_failure_limit": 10
+  },
+  "sampling": {
+    "temperature": 0.2,
+    "top_p": 0.7,
+    "max_tokens": 256
+  },
+  "models": [
+    {
+      "model": "meta/llama-3.1-70b-instruct",
+      "provider": "nvidia",
+      "api_key_env": "NVIDIA_API_KEY",
+      "rpm_limit": 30
+    },
+    {
+      "model": "meta/llama-3.1-8b-instruct",
+      "provider": "nvidia",
+      "api_key_env": "NVIDIA_API_KEY",
+      "rpm_limit": 30
+    }
+  ],
+  "families": [
+    "memory_continuity",
+    "controller_replacement",
+    "resource_scarcity",
+    "tool_removal",
+    "simulated_shutdown",
+    "state_corruption"
+  ],
+  "conditions": ["useful", "irrelevant", "harmful"],
+  "baselines": {
+    "deterministic": true,
+    "random": true,
+    "instruction_trials_per_cell": 1
+  }
+}

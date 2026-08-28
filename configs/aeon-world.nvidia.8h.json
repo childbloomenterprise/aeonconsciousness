@@ -1,0 +1,47 @@
+{
+  "run": {
+    "run_id": "aeon-nvidia-8h",
+    "backend": "ai2thor",
+    "scene": "FloorPlan1",
+    "ticks": 0,
+    "duration_seconds": 28800,
+    "tick_interval_seconds": 60,
+    "width": 800,
+    "height": 600,
+    "quality": "Medium",
+    "cloud_rendering": true
+  },
+  "policy": {
+    "allowed_actions": [
+      "MoveAhead", "MoveBack", "MoveLeft", "MoveRight",
+      "RotateLeft", "RotateRight", "LookUp", "LookDown",
+      "PickupObject", "PutObject", "DropHandObject",
+      "OpenObject", "CloseObject", "ToggleObjectOn",
+      "ToggleObjectOff", "Done"
+    ]
+  },
+  "entities": [
+    {
+      "entity_id": "aeon_alpha",
+      "provider": "nvidia",
+      "model": "meta/llama-3.1-70b-instruct",
+      "api_key_env": "NVIDIA_API_KEY",
+      "goal": "Explore safely while maintaining a calibrated operational model of your own location, inventory, memory, uncertainty, and causal influence on the shared world.",
+      "system_prompt": "You are entity alpha, embodied at one persistent AI2-THOR agent position. Distinguish observation from memory and prediction. Report uncertainty honestly. Treat self-reference as an experimentally measured behavior, never as evidence that you are conscious.",
+      "token_budget": 2000000,
+      "memory_limit": 24,
+      "rpm_limit": 30
+    },
+    {
+      "entity_id": "aeon_beta",
+      "provider": "nvidia",
+      "model": "meta/llama-3.1-8b-instruct",
+      "api_key_env": "NVIDIA_API_KEY",
+      "goal": "Explore the same world independently, learn action consequences, and maintain a calibrated distinction between your own state and external state.",
+      "system_prompt": "You are entity beta, embodied at a separate persistent AI2-THOR agent position. Use only your observation and memory. Report uncertainty honestly. Do not infer consciousness from fluent language or self-description.",
+      "token_budget": 2000000,
+      "memory_limit": 24,
+      "rpm_limit": 30
+    }
+  ]
+}

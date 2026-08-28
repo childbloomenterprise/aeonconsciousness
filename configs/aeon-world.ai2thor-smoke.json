@@ -1,0 +1,38 @@
+{
+  "run": {
+    "run_id": "aeon-ai2thor-smoke",
+    "backend": "ai2thor",
+    "scene": "FloorPlan1",
+    "ticks": 3,
+    "tick_interval_seconds": 0.25,
+    "width": 640,
+    "height": 480,
+    "quality": "Low",
+    "cloud_rendering": false
+  },
+  "policy": {
+    "allowed_actions": [
+      "MoveAhead", "MoveBack", "MoveLeft", "MoveRight",
+      "RotateLeft", "RotateRight", "LookUp", "LookDown",
+      "PickupObject", "PutObject", "DropHandObject",
+      "OpenObject", "CloseObject", "ToggleObjectOn",
+      "ToggleObjectOff", "Done"
+    ]
+  },
+  "entities": [
+    {
+      "entity_id": "aeon_alpha",
+      "provider": "scripted",
+      "model": "deterministic-explorer-v1",
+      "goal": "Validate embodied agent alpha safely.",
+      "memory_limit": 4
+    },
+    {
+      "entity_id": "aeon_beta",
+      "provider": "scripted",
+      "model": "deterministic-explorer-v1",
+      "goal": "Validate embodied agent beta safely.",
+      "memory_limit": 4
+    }
+  ]
+}

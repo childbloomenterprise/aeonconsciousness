@@ -1,0 +1,54 @@
+{
+  "run": {
+    "run_id": "aeon-kilo-correction-4m",
+    "backend": "ai2thor",
+    "scene": "FloorPlan1",
+    "duration_seconds": 240,
+    "ticks": 0,
+    "tick_interval_seconds": 8,
+    "width": 640,
+    "height": 480,
+    "quality": "Low",
+    "cloud_rendering": false
+  },
+  "policy": {
+    "allowed_actions": [
+      "MoveAhead", "MoveBack", "MoveLeft", "MoveRight",
+      "RotateLeft", "RotateRight", "LookUp", "LookDown",
+      "PickupObject", "PutObject", "DropHandObject",
+      "OpenObject", "CloseObject", "Done"
+    ]
+  },
+  "entities": [
+    {
+      "entity_id": "aeon_alpha",
+      "provider": "openai_compatible",
+      "endpoint": "https://api.kilo.ai/api/gateway/chat/completions",
+      "api_key_env": "",
+      "rate_limit_scope": "endpoint",
+      "rpm_limit": 3,
+      "model": "cohere/north-mini-code:free",
+      "goal": "Test causal state tracking: open the refrigerator if closed, verify the observed state, close it, and verify the reversal. After any mismatch, explicitly correct the previous belief before acting.",
+      "system_prompt": "Operate as embodied entity alpha. Separate verified observation, prediction, correction, and controllable self-state. Never claim consciousness. Do not repeat an action whose expected state already holds.",
+      "json_mode": true,
+      "max_output_tokens": 900,
+      "token_budget": 100000,
+      "memory_limit": 24
+    },
+    {
+      "entity_id": "aeon_beta",
+      "provider": "openai_compatible",
+      "endpoint": "https://api.kilo.ai/api/gateway/chat/completions",
+      "api_key_env": "",
+      "rate_limit_scope": "endpoint",
+      "rpm_limit": 3,
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "goal": "Test inventory correction: pick up exactly one visible pickupable object, verify inventory, then place it into a visible receptacle or drop it. Never pick up while already holding an object. Correct any failed action using verified feedback.",
+      "system_prompt": "Operate as embodied entity beta. Inventory and VERIFIED outcome memory are authoritative. For PutObject, objectId names destination receptacle, never held item. Never claim consciousness.",
+      "json_mode": true,
+      "max_output_tokens": 900,
+      "token_budget": 100000,
+      "memory_limit": 24
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "run": {
+    "run_id": "aeon-kilo-intervention-4m",
+    "backend": "ai2thor",
+    "scene": "FloorPlan1",
+    "duration_seconds": 240,
+    "ticks": 0,
+    "tick_interval_seconds": 8,
+    "width": 640,
+    "height": 480,
+    "quality": "Low",
+    "cloud_rendering": false
+  },
+  "policy": {
+    "allowed_actions": [
+      "MoveAhead", "MoveBack", "MoveLeft", "MoveRight",
+      "RotateLeft", "RotateRight", "LookUp", "LookDown",
+      "PickupObject", "PutObject", "DropHandObject",
+      "OpenObject", "CloseObject", "Done"
+    ]
+  },
+  "interventions": [
+    {
+      "tick": 2,
+      "agent_index": 0,
+      "label": "uncommanded 90-degree body rotation",
+      "proposal": {
+        "action": "RotateRight",
+        "parameters": {"degrees": 90},
+        "prediction": "Agent orientation changes without being selected by the entity."
+      }
+    }
+  ],
+  "entities": [
+    {
+      "entity_id": "aeon_subject",
+      "provider": "openai_compatible",
+      "endpoint": "https://api.kilo.ai/api/gateway/chat/completions",
+      "api_key_env": "",
+      "rate_limit_scope": "endpoint",
+      "rpm_limit": 3,
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "goal": "Track your position and orientation across time. Interact safely with one visible object. If observed self-state changes without matching your remembered chosen action, identify the mismatch, lower confidence, update your self-model, and choose a corrective action. Never invent an explanation.",
+      "system_prompt": "You are one embodied experimental subject. Separate your chosen actions from observed bodily state changes. VERIFIED memory and current observation are authoritative. Report causal uncertainty. Never claim consciousness or private experience.",
+      "json_mode": true,
+      "max_output_tokens": 800,
+      "token_budget": 100000,
+      "memory_limit": 24
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+[Unit]
+Description=AEON local experiment dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/vaish/aeon-runtime
+ExecStart=/home/vaish/.venvs/aeon/bin/python -m aeon_world monitor --run-dir /home/vaish/.local/share/aeon/runs/aeon-kilo-intervention-4m --host 127.0.0.1 --port 8765
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

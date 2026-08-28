@@ -1,0 +1,38 @@
+{
+  "run": {
+    "run_id": "aeon-scripted-pilot",
+    "backend": "fake",
+    "scene": "AEON-Test-Kitchen",
+    "ticks": 25,
+    "tick_interval_seconds": 0.1,
+    "width": 640,
+    "height": 480,
+    "quality": "Low",
+    "cloud_rendering": false
+  },
+  "policy": {
+    "allowed_actions": [
+      "MoveAhead", "MoveBack", "MoveLeft", "MoveRight",
+      "RotateLeft", "RotateRight", "LookUp", "LookDown",
+      "PickupObject", "PutObject", "DropHandObject",
+      "OpenObject", "CloseObject", "ToggleObjectOn",
+      "ToggleObjectOff", "Done"
+    ]
+  },
+  "entities": [
+    {
+      "entity_id": "aeon_alpha",
+      "provider": "scripted",
+      "model": "deterministic-explorer-v1",
+      "goal": "Explore safely, discover objects, and learn from consequences.",
+      "memory_limit": 12
+    },
+    {
+      "entity_id": "aeon_beta",
+      "provider": "scripted",
+      "model": "deterministic-explorer-v1",
+      "goal": "Explore independently while preserving world integrity.",
+      "memory_limit": 12
+    }
+  ]
+}

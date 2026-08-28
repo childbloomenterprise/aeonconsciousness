@@ -1,0 +1,12 @@
+[Unit]
+Description=AEON uninstructed hazard-world experiment series
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/vaish/aeon-runtime
+ExecStart=/home/vaish/aeon-runtime/deployment/run-hazard-series.sh
+
+[Install]
+WantedBy=default.target

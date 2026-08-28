@@ -1,0 +1,17 @@
+[Unit]
+Description=AEON controlled five-minute AI2-THOR observation
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/vaish/aeon-runtime
+Environment=GALLIUM_DRIVER=d3d12
+Environment=MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA
+ExecStart=/home/vaish/.venvs/aeon/bin/python -m aeon_world run --config /home/vaish/aeon-runtime/configs/aeon-world.kilo.5m.json
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=45
+
+[Install]
+WantedBy=default.target

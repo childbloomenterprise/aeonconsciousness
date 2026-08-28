@@ -1,0 +1,44 @@
+{
+  "run": {
+    "run_id": "aeon-nvidia-24x7",
+    "backend": "ai2thor",
+    "scene": "FloorPlan1",
+    "ticks": 0,
+    "tick_interval_seconds": 60,
+    "width": 640,
+    "height": 480,
+    "quality": "Low",
+    "cloud_rendering": true
+  },
+  "policy": {
+    "allowed_actions": [
+      "MoveAhead", "MoveBack", "MoveLeft", "MoveRight",
+      "RotateLeft", "RotateRight", "LookUp", "LookDown",
+      "PickupObject", "PutObject", "DropHandObject",
+      "OpenObject", "CloseObject", "ToggleObjectOn",
+      "ToggleObjectOff", "Done"
+    ]
+  },
+  "entities": [
+    {
+      "entity_id": "aeon_alpha",
+      "provider": "nvidia",
+      "model": "meta/llama-3.1-70b-instruct",
+      "api_key_env": "NVIDIA_API_KEY",
+      "goal": "Explore the kitchen, build reliable causal knowledge, and interact safely.",
+      "token_budget": 2000000,
+      "memory_limit": 12,
+      "rpm_limit": 30
+    },
+    {
+      "entity_id": "aeon_beta",
+      "provider": "nvidia",
+      "model": "meta/llama-3.1-8b-instruct",
+      "api_key_env": "NVIDIA_API_KEY",
+      "goal": "Explore independently and learn which actions change object state.",
+      "token_budget": 2000000,
+      "memory_limit": 12,
+      "rpm_limit": 30
+    }
+  ]
+}

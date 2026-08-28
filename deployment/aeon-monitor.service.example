@@ -1,0 +1,16 @@
+[Unit]
+Description=AEON local monitoring dashboard
+After=aeon-world.service
+
+[Service]
+Type=simple
+User=aeon
+WorkingDirectory=/opt/aeon
+ExecStart=/opt/aeon/.venv/bin/python -m aeon_world monitor --run-dir /home/aeon/.local/share/aeon/runs/aeon-nvidia-24x7 --host 127.0.0.1 --port 8765
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

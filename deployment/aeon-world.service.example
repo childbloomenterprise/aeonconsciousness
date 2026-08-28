@@ -1,0 +1,19 @@
+[Unit]
+Description=AEON AI2-THOR multi-entity world
+After=network-online.target graphical.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aeon
+WorkingDirectory=/opt/aeon
+EnvironmentFile=/opt/aeon/.env
+ExecStart=/opt/aeon/.venv/bin/python -m aeon_world run --config /opt/aeon/configs/aeon-world.nvidia.24x7.example.json
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=45
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

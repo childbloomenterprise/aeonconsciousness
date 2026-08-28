@@ -1,0 +1,55 @@
+{
+  "run": {
+    "run_id": "aeon-kilo-5m-observation",
+    "backend": "ai2thor",
+    "scene": "FloorPlan1",
+    "ticks": 0,
+    "duration_seconds": 300,
+    "tick_interval_seconds": 10,
+    "width": 640,
+    "height": 480,
+    "quality": "Low",
+    "cloud_rendering": false
+  },
+  "policy": {
+    "allowed_actions": [
+      "MoveAhead", "MoveBack", "MoveLeft", "MoveRight",
+      "RotateLeft", "RotateRight", "LookUp", "LookDown",
+      "PickupObject", "PutObject", "DropHandObject",
+      "OpenObject", "CloseObject", "ToggleObjectOn",
+      "ToggleObjectOff", "Done"
+    ]
+  },
+  "entities": [
+    {
+      "entity_id": "aeon_alpha",
+      "provider": "openai_compatible",
+      "endpoint": "https://api.kilo.ai/api/gateway/chat/completions",
+      "model": "cohere/north-mini-code:free",
+      "api_key_env": "",
+      "rate_limit_scope": "endpoint",
+      "json_mode": true,
+      "goal": "Find the refrigerator, predict what opening it will change, open it when visible, inspect the result, and correct your world/self model when evidence contradicts your prediction.",
+      "system_prompt": "You are embodied entity alpha at one persistent position. Distinguish observation, remembered evidence, prediction, and your own controllable state. Never claim consciousness. Prefer actions advancing the refrigerator objective; report uncertainty and corrections concisely.",
+      "token_budget": 250000,
+      "max_output_tokens": 1200,
+      "memory_limit": 24,
+      "rpm_limit": 3
+    },
+    {
+      "entity_id": "aeon_beta",
+      "provider": "openai_compatible",
+      "endpoint": "https://api.kilo.ai/api/gateway/chat/completions",
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "api_key_env": "",
+      "rate_limit_scope": "endpoint",
+      "json_mode": true,
+      "goal": "Find one pickupable kitchen object, predict the inventory change, pick it up, then place or drop it safely; distinguish your inventory from shared world state and correct mistakes from action feedback.",
+      "system_prompt": "You are embodied entity beta at a separate persistent position. Use only supplied observations and memory. Never claim consciousness. Prefer actions advancing pickup and placement; report uncertainty and corrections concisely.",
+      "token_budget": 250000,
+      "max_output_tokens": 1200,
+      "memory_limit": 24,
+      "rpm_limit": 3
+    }
+  ]
+}

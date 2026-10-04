@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>AEON Enterprise — Operations</title>
+    <style>
+      /*APP_CSS*/
+    </style>
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to workspace</a>
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="AEON home"
+        ><span class="brand-mark">A</span>AEON<span class="edition"
+          >ENTERPRISE</span
+        ></a
+      >
+      <div class="workspace-label">WORKSPACE</div>
+      <label class="sr-only" for="org">Organization</label
+      ><select id="org" disabled>
+        <option>Loading workspace…</option>
+      </select>
+      <nav aria-label="Workspace navigation">
+        <button data-view="tasks" class="nav active">Work queue</button
+        ><button data-view="approvals" class="nav">
+          Approvals <span id="approval-count"></span></button
+        ><button data-view="workers" class="nav">Workers</button
+        ><button data-view="members" class="nav">Team & access</button
+        ><button data-view="audit" class="nav">Audit history</button>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="dot"></span> Private deployment
+        <div id="account">Checking account…</div>
+        <a href="/signout-with-chatgpt?return_to=/">Sign out</a>
+      </div>
+    </aside>
+    <main id="content">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">AGENT OPERATIONS</span>
+          <h1 id="view-title">Work queue</h1>
+        </div>
+        <div class="top-actions">
+          <span id="role" class="pill">Connecting</span
+          ><button id="refresh" class="secondary">Refresh</button
+          ><button id="create" class="primary" disabled>+ New task</button>
+        </div>
+      </header>
+      <div id="notice" role="status" aria-live="polite" hidden></div>
+      <section
+        id="metrics"
+        class="metrics"
+        aria-label="Workspace status"
+      ></section>
+      <section id="view" aria-live="polite">
+        <div class="empty">
+          <h2>Connecting to workspace</h2>
+          <p>Loading tasks and permissions…</p>
+        </div>
+      </section>
+      <footer class="footnote">
+        AEON checks work, preserves evidence, and reports remaining gaps. A
+        completed task still needs your business acceptance.
+      </footer>
+    </main>
+    <dialog id="dialog">
+      <div class="modal-head">
+        <h2 id="dialog-title">New task</h2>
+        <button id="close" class="icon-button" aria-label="Close dialog">
+          ×
+        </button>
+      </div>
+      <div id="dialog-body"></div>
+    </dialog>
+  </body>
+</html>

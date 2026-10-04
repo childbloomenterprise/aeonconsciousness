@@ -7,6 +7,9 @@ import platform
 import sys
 from pathlib import Path
 
+from agent_lab import AgentLabRunner, load_catalog
+from aeon_kernel import assess_pyramid, load_evidence
+
 from .backends import Ai2ThorBackend
 from .dashboard import serve_dashboard
 from .ledger import EventLedger, default_runtime_root
@@ -96,6 +99,24 @@ def main(argv: list[str] | None = None) -> int:
         "--format", choices=["technical", "child", "json"], default="technical"
     )
 
+    pyramid_report_parser = subparsers.add_parser(
+        "pyramid-report", help="Assess AEON capability layers from referenced evidence"
+    )
+    pyramid_report_parser.add_argument("--evidence", type=Path, required=True)
+
+    subparsers.add_parser("agent-catalog", help="Print the researched open-source agent catalog")
+
+    agent_lab_parser = subparsers.add_parser(
+        "agent-lab", help="Run pinned external agent frameworks behind AEON controls"
+    )
+    agent_lab_parser.add_argument("--run-dir", type=Path, required=True)
+    agent_lab_parser.add_argument(
+        "--framework",
+        action="append",
+        dest="frameworks",
+        help="Adapter id to run; repeat for multiple frameworks. Defaults to all.",
+    )
+
     args = parser.parse_args(argv)
     _load_env(args.env_file)
 
@@ -149,4 +170,23 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps({"status": "failed", "error": str(error)}, indent=2), file=sys.stderr)
             return 1
         return 0
+    if args.command == "pyramid-report":
+        try:
+            report = assess_pyramid(load_evidence(args.evidence))
+            print(json.dumps(report.to_dict(), indent=2))
+        except Exception as error:
+            print(json.dumps({"status": "failed", "error": str(error)}, indent=2), file=sys.stderr)
+            return 1
+        return 0
+    if args.command == "agent-catalog":
+        print(json.dumps(list(load_catalog()), indent=2))
+        return 0
+    if args.command == "agent-lab":
+        try:
+            result = AgentLabRunner(args.run_dir).run(args.frameworks)
+            print(json.dumps(result, indent=2))
+        except Exception as error:
+            print(json.dumps({"status": "failed", "error": str(error)}, indent=2), file=sys.stderr)
+            return 1
+        return 0 if result["failed"] == 0 else 1
     return 2

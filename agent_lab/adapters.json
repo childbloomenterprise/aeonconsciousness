@@ -1,0 +1,56 @@
+[
+  {
+    "id": "langgraph",
+    "packages": ["langgraph==1.2.12"],
+    "script": "adapters/langgraph_adapter.py",
+    "timeout_seconds": 180
+  },
+  {
+    "id": "pydantic-ai",
+    "packages": ["pydantic-ai-slim==2.51.0"],
+    "script": "adapters/pydantic_ai_adapter.py",
+    "timeout_seconds": 180
+  },
+  {
+    "id": "smolagents",
+    "packages": ["smolagents==1.26.0"],
+    "script": "adapters/smolagents_adapter.py",
+    "timeout_seconds": 180
+  },
+  {
+    "id": "autogen-agentchat",
+    "packages": ["autogen-agentchat==0.7.5", "autogen-ext==0.7.5"],
+    "script": "adapters/autogen_adapter.py",
+    "timeout_seconds": 180
+  },
+  {
+    "id": "openai-agents",
+    "packages": ["openai-agents==0.22.3"],
+    "script": "adapters/openai_agents_adapter.py",
+    "timeout_seconds": 180
+  },
+  {
+    "id": "google-adk",
+    "packages": ["google-adk==2.10.0"],
+    "script": "adapters/google_adk_adapter.py",
+    "timeout_seconds": 180
+  },
+  {
+    "id": "llama-index",
+    "packages": ["llama-index-core==0.14.25"],
+    "script": "adapters/llama_index_adapter.py",
+    "timeout_seconds": 240
+  },
+  {
+    "id": "microsoft-agent-framework",
+    "packages": ["agent-framework-core==1.19.0"],
+    "script": "adapters/microsoft_agent_framework_adapter.py",
+    "timeout_seconds": 180
+  },
+  {
+    "id": "crewai",
+    "packages": ["crewai==1.15.22"],
+    "script": "adapters/crewai_adapter.py",
+    "timeout_seconds": 240
+  }
+]

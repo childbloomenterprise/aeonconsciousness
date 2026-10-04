@@ -1,0 +1,14 @@
+include LICENSE THIRD_PARTY_NOTICES.md
+recursive-include third_party *LICENSE
+include docs/AEON_DEPLOYMENT_AND_INTEGRATION.md
+include docs/AEON_WORKER_MVP_IMPLEMENTATION.md
+include docs/AEON_RELEASE_0_3_0_2026-10-03.md
+recursive-include deployment *.txt *.yml *.json *.py *.ps1 Dockerfile
+include .dockerignore
+recursive-include examples *.py
+include configs/aeon-worker-grant.example.json
+include configs/aeon-nat-workflow.yml
+prune artifacts
+prune .venv
+prune .git
+global-exclude *.pyc __pycache__ .env *.sqlite3 *.sqlite3-wal *.sqlite3-shm

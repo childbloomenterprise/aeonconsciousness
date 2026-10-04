@@ -90,7 +90,16 @@ class EventLedger:
 
     def start_run(self, run_id: str, config: dict[str, Any]) -> None:
         now = utc_now()
+        config_json = json.dumps(config, sort_keys=True)
         with self._connection() as connection:
+            existing = connection.execute(
+                "SELECT config_json FROM runs WHERE run_id=?",
+                (run_id,),
+            ).fetchone()
+            if existing is not None:
+                existing_config = json.dumps(json.loads(existing["config_json"]), sort_keys=True)
+                if existing_config != config_json:
+                    raise ValueError(f"Run '{run_id}' cannot resume with changed configuration.")
             connection.execute(
                 """
                 INSERT INTO runs(run_id, started_at, updated_at, status, tick, config_json)
@@ -100,7 +109,7 @@ class EventLedger:
                     status='running',
                     config_json=excluded.config_json
                 """,
-                (run_id, now, now, json.dumps(config, sort_keys=True)),
+                (run_id, now, now, config_json),
             )
 
     def update_run(self, run_id: str, *, tick: int, status: str) -> None:
@@ -212,6 +221,10 @@ class EventLedger:
         per_entity: dict[str, dict[str, Any]] = {}
         action_results = 0
         successful_actions = 0
+        model_action_results = 0
+        successful_model_actions = 0
+        platform_fallback_results = 0
+        action_results_by_source: dict[str, int] = {}
         self_model_reports = 0
         for row in rows:
             event_type = str(row["event_type"])
@@ -221,7 +234,15 @@ class EventLedger:
             if entity_id:
                 entity = per_entity.setdefault(
                     str(entity_id),
-                    {"decisions": 0, "model_errors": 0, "denied_actions": 0, "tokens_used": 0},
+                    {
+                        "decisions": 0,
+                        "model_errors": 0,
+                        "denied_actions": 0,
+                        "action_results": 0,
+                        "successful_actions": 0,
+                        "platform_fallback_results": 0,
+                        "tokens_used": 0,
+                    },
                 )
                 if event_type == "decision":
                     entity["decisions"] += 1
@@ -235,12 +256,37 @@ class EventLedger:
             if event_type == "action_result":
                 action_results += 1
                 successful_actions += int(bool(payload.get("success")))
+                source = str(payload.get("proposal_source", "model"))
+                action_results_by_source[source] = action_results_by_source.get(source, 0) + 1
+                if entity_id:
+                    entity = per_entity[str(entity_id)]
+                    entity["action_results"] += 1
+                    entity["successful_actions"] += int(bool(payload.get("success")))
+                if source == "model":
+                    model_action_results += 1
+                    successful_model_actions += int(bool(payload.get("success")))
+                elif source == "platform_fallback":
+                    platform_fallback_results += 1
+                    if entity_id:
+                        per_entity[str(entity_id)]["platform_fallback_results"] += 1
         return {
             "event_counts": counts,
             "per_entity": per_entity,
             "action_results": action_results,
             "successful_actions": successful_actions,
             "action_success_rate": round(successful_actions / action_results, 4) if action_results else None,
+            "executed_action_success_rate": (
+                round(successful_actions / action_results, 4) if action_results else None
+            ),
+            "model_action_results": model_action_results,
+            "successful_model_actions": successful_model_actions,
+            "model_action_success_rate": (
+                round(successful_model_actions / model_action_results, 4)
+                if model_action_results
+                else None
+            ),
+            "platform_fallback_results": platform_fallback_results,
+            "action_results_by_source": action_results_by_source,
             "self_model_reports": self_model_reports,
         }
 
@@ -267,12 +313,26 @@ class EventLedger:
             previous = row["event_hash"]
         return True
 
-    def write_frame(self, entity_id: str, data: bytes) -> Path:
+    def write_frame(
+        self,
+        entity_id: str,
+        data: bytes,
+        *,
+        tick: int | None = None,
+        event_id: str | None = None,
+    ) -> Path:
+        history_dir = self.frames_dir / "history" / entity_id
+        history_dir.mkdir(parents=True, exist_ok=True)
+        suffix = event_id or uuid.uuid4().hex
+        history_path = history_dir / f"{tick if tick is not None else 'unknown'}-{suffix}.jpg"
+        history_temporary = history_path.with_suffix(".jpg.tmp")
+        history_temporary.write_bytes(data)
+        history_temporary.replace(history_path)
         path = self.frames_dir / f"{entity_id}.jpg"
         temporary = path.with_suffix(".jpg.tmp")
         temporary.write_bytes(data)
         temporary.replace(path)
-        return path
+        return history_path
 
     def read_control(self) -> str:
         if not self.control_path.exists():

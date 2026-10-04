@@ -48,6 +48,10 @@ class PolicyTests(unittest.TestCase):
         self.assertFalse(invisible.allowed)
         self.assertFalse(forced.allowed)
 
+    def test_explicit_empty_allowlist_denies_every_action(self):
+        decision = ActionPolicy(set()).validate(ActionProposal("Done"), self.observation)
+        self.assertFalse(decision.allowed)
+
     def test_normalizes_common_model_action_aliases_without_broadening_policy(self):
         proposal = ActionProposal.from_dict(
             {"action": "open", "parameters": {"object_id": "Apple|1"}}
@@ -159,6 +163,26 @@ class LedgerTests(unittest.TestCase):
             self.assertEqual(1, metrics["self_model_reports"])
             self.assertEqual(1, metrics["per_entity"]["alpha"]["model_errors"])
 
+    def test_run_id_cannot_be_reused_with_changed_configuration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ledger = EventLedger(Path(directory))
+            ledger.start_run("run-1", {"run": {"ticks": 1}})
+            ledger.start_run("run-1", {"run": {"ticks": 1}})
+
+            with self.assertRaises(ValueError):
+                ledger.start_run("run-1", {"run": {"ticks": 2}})
+
+    def test_frame_history_is_immutable_while_latest_frame_remains_available(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ledger = EventLedger(Path(directory))
+            first = ledger.write_frame("alpha", b"first", tick=1, event_id="event-1")
+            second = ledger.write_frame("alpha", b"second", tick=2, event_id="event-2")
+
+            self.assertNotEqual(first, second)
+            self.assertEqual(b"first", first.read_bytes())
+            self.assertEqual(b"second", second.read_bytes())
+            self.assertEqual(b"second", (ledger.frames_dir / "alpha.jpg").read_bytes())
+
 
 class RunnerTests(unittest.TestCase):
     def test_two_entities_complete_deterministic_world(self):
@@ -259,6 +283,67 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(1, len(interventions))
         self.assertTrue(interventions[0]["payload"]["result"]["success"])
         self.assertTrue(result["audit_valid"])
+
+    def test_policy_denial_is_available_as_next_tick_feedback(self):
+        class DenialThenDoneClient:
+            last_usage = {"total_tokens": 0}
+
+            def __init__(self):
+                self.memories = []
+
+            def decide(self, entity, observation, memories):
+                self.memories.append(memories)
+                if observation.tick == 1:
+                    return ActionProposal("PickupObject", {"objectId": "missing"})
+                return ActionProposal("Done")
+
+        client = DenialThenDoneClient()
+        config = {
+            "run": {"run_id": "denial-feedback", "backend": "fake", "ticks": 2},
+            "entities": [
+                {"entity_id": "alpha", "provider": "scripted", "model": "scripted", "goal": "test"},
+            ],
+            "policy": {"allowed_actions": ["PickupObject", "Done"]},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            runner = WorldRunner(
+                config,
+                backend=DeterministicBackend(),
+                clients={"alpha": client},
+                run_dir=Path(directory),
+            )
+            runner.run()
+
+        self.assertEqual(2, len(client.memories))
+        self.assertTrue(any(note.startswith("DENIED PickupObject") for note in client.memories[1]))
+
+    def test_platform_fallback_is_not_counted_as_model_selected_success(self):
+        class FailingClient:
+            def decide(self, entity, observation, memories):
+                raise RuntimeError("provider unavailable")
+
+        config = {
+            "run": {"run_id": "fallback-attribution", "backend": "fake", "ticks": 1},
+            "entities": [
+                {"entity_id": "alpha", "provider": "scripted", "model": "scripted", "goal": "test"},
+            ],
+            "policy": {"allowed_actions": ["Done"]},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            runner = WorldRunner(
+                config,
+                backend=DeterministicBackend(),
+                clients={"alpha": FailingClient()},
+                run_dir=Path(directory),
+            )
+            runner.run()
+            metrics = runner.ledger.metrics("fallback-attribution")
+
+        self.assertEqual(1, metrics["platform_fallback_results"])
+        self.assertEqual(0, metrics["model_action_results"])
+        self.assertIsNone(metrics["model_action_success_rate"])
+        self.assertEqual({"platform_fallback": 1}, metrics["action_results_by_source"])
+        self.assertEqual(1, metrics["per_entity"]["alpha"]["platform_fallback_results"])
 
 
 class HazardBackendTests(unittest.TestCase):
@@ -438,6 +523,40 @@ class NvidiaGatewayTests(unittest.TestCase):
 
         request_body = json.loads(urlopen.call_args.args[0].data)
         self.assertEqual(1200, request_body["max_tokens"])
+
+    def test_contract_exposes_only_entity_authorized_actions(self):
+        response_body = {
+            "choices": [{"message": {"content": '{"action":"Done","confidence":1}'}}],
+            "usage": {"total_tokens": 5},
+        }
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return None
+
+            def read(self):
+                return json.dumps(response_body).encode("utf-8")
+
+        entity = EntityConfig.from_dict(
+            {
+                "entity_id": "alpha",
+                "model": "test/model",
+                "goal": "inspect only",
+                "provider": "openai_compatible",
+                "api_key_env": "",
+                "endpoint": "https://example.invalid/v1/chat/completions",
+                "allowed_actions": ["Inspect", "Done"],
+            }
+        )
+        with patch("urllib.request.urlopen", return_value=FakeResponse()) as urlopen:
+            client_for(entity).decide(entity, Observation("alpha", 1, "test", {}, (), ()), ())
+
+        request_body = json.loads(urlopen.call_args.args[0].data)
+        contract = json.loads(request_body["messages"][1]["content"])
+        self.assertEqual({"Done", "Inspect"}, set(contract["allowed_actions_and_exact_parameters"]))
 
     def test_structured_client_applies_fixed_sampling_without_logging_key(self):
         response_body = {

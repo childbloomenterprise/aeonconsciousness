@@ -66,6 +66,7 @@ class EntityConfig:
     max_output_tokens: int = 500
     memory_limit: int = 12
     rpm_limit: int = 30
+    allowed_actions: tuple[str, ...] = ()
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "EntityConfig":
@@ -83,6 +84,7 @@ class EntityConfig:
             max_output_tokens=int(value.get("max_output_tokens", 500)),
             memory_limit=int(value.get("memory_limit", 12)),
             rpm_limit=int(value.get("rpm_limit", 30)),
+            allowed_actions=tuple(str(action) for action in value.get("allowed_actions", ())),
         )
 
 

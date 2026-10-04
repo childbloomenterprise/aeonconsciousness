@@ -127,12 +127,15 @@ class NvidiaModelClient:
             raise ValueError("rate_limit_scope must be credential, endpoint, or model.")
         limiter = _limiter_for(limiter_identity, entity.rpm_limit)
 
+        allowed_actions = entity.allowed_actions or tuple(ACTION_PARAMETERS)
         contract = {
             "goal": entity.goal,
             "observation": observation.to_dict(),
             "relevant_memory": list(memories),
             "allowed_actions_and_exact_parameters": {
-                action: sorted(parameters) for action, parameters in ACTION_PARAMETERS.items()
+                action: sorted(ACTION_PARAMETERS[action])
+                for action in allowed_actions
+                if action in ACTION_PARAMETERS
             },
             "action_semantics": {
                 "PickupObject": "objectId is the visible object to pick up; inventory must be empty",

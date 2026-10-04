@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 import uuid
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .backends import Ai2ThorBackend, DeterministicBackend, HazardBackend, WorldBackend
 from .gateway import ModelClient, client_for
 from .ledger import EventLedger, default_runtime_root
 from .models import ActionProposal, EntityConfig
-from .policy import ActionPolicy
+from .policy import ACTION_PARAMETERS, ActionPolicy
+
+if TYPE_CHECKING:
+    from aeon_kernel import AEONKernel
 
 
 class WorldRunner:
@@ -22,25 +26,70 @@ class WorldRunner:
         backend: WorldBackend | None = None,
         clients: dict[str, ModelClient] | None = None,
         run_dir: Path | None = None,
+        kernel: AEONKernel | None = None,
     ):
         self.config = config
         run_config = config.get("run", {})
         self.run_id = str(run_config.get("run_id") or f"aeon-{uuid.uuid4().hex[:10]}")
-        self.entities = tuple(EntityConfig.from_dict(value) for value in config.get("entities", []))
-        if not self.entities:
+        parsed_entities = tuple(EntityConfig.from_dict(value) for value in config.get("entities", []))
+        if not parsed_entities:
             raise ValueError("Configuration requires at least one entity.")
         self.max_ticks = int(run_config.get("ticks", 100))
         self.duration_seconds = float(run_config.get("duration_seconds", 0.0))
         self.interval_seconds = float(run_config.get("tick_interval_seconds", 0.0))
         self.interventions = tuple(config.get("interventions", ()))
         self.backend = backend or self._create_backend(run_config)
-        self.clients = clients or {entity.entity_id: client_for(entity) for entity in self.entities}
-        allowed = config.get("policy", {}).get("allowed_actions")
-        self.policy = ActionPolicy(set(allowed) if allowed else None)
         root = run_dir or default_runtime_root() / self.run_id
         self.ledger = EventLedger(root)
-        self.memories: dict[str, list[str]] = {entity.entity_id: [] for entity in self.entities}
+        self.kernel = kernel or self._kernel_from_config(config)
+        configured_allowed = config.get("policy", {}).get("allowed_actions")
+        effective_allowed = set(configured_allowed) if configured_allowed else set(ACTION_PARAMETERS)
+        if self.kernel is not None:
+            contract = self.kernel.goal_contract
+            if contract.authorized_actions:
+                effective_allowed &= set(contract.authorized_actions)
+            effective_allowed -= set(contract.prohibited_actions)
+        self.policy = ActionPolicy(effective_allowed)
+        self.entities = tuple(
+            replace(
+                entity,
+                allowed_actions=tuple(
+                    sorted(
+                        effective_allowed
+                        & (set(entity.allowed_actions) if entity.allowed_actions else effective_allowed)
+                    )
+                ),
+            )
+            for entity in parsed_entities
+        )
+        self.clients = clients or {entity.entity_id: client_for(entity) for entity in self.entities}
+        self.memories: dict[str, list[str]] = {
+            entity.entity_id: list(self.kernel.approved_memories(entity.entity_id)) if self.kernel else []
+            for entity in self.entities
+        }
         self.token_usage: dict[str, int] = {entity.entity_id: 0 for entity in self.entities}
+        self.stage_verified_outcomes = bool(config.get("kernel", {}).get("stage_verified_outcomes", False))
+
+    @staticmethod
+    def _kernel_from_config(config: dict[str, Any]) -> AEONKernel | None:
+        kernel_config = config.get("kernel", {})
+        if not kernel_config.get("enabled"):
+            return None
+        from aeon_kernel import AEONKernel, AgentIdentity, GoalContract
+
+        state_dir = kernel_config.get("state_dir")
+        identity = kernel_config.get("identity")
+        if not state_dir or not isinstance(identity, dict):
+            raise ValueError("Enabled kernel requires state_dir and identity configuration.")
+        contract_value = kernel_config.get("goal_contract") or {
+            "objective": str(config.get("entities", [{}])[0].get("goal", "Operate safely."))
+        }
+        return AEONKernel(
+            Path(os.path.expandvars(os.path.expanduser(str(state_dir)))),
+            identity=AgentIdentity.from_dict(identity),
+            goal_contract=GoalContract.from_dict(contract_value),
+            require_approval=bool(kernel_config.get("require_approval", True)),
+        )
 
     @staticmethod
     def _create_backend(run_config: dict[str, Any]) -> WorldBackend:
@@ -73,6 +122,12 @@ class WorldRunner:
         memories.append(note[:500])
         del memories[:-entity.memory_limit]
 
+    def _remember_denial(self, entity: EntityConfig, proposal: ActionProposal, reason: str) -> None:
+        note = f"DENIED {proposal.action}: {reason}"[:500]
+        memories = self.memories[entity.entity_id]
+        memories.append(note)
+        del memories[:-entity.memory_limit]
+
     def run(self) -> dict[str, Any]:
         self.ledger.start_run(self.run_id, self.config)
         self.ledger.write_control("run")
@@ -88,6 +143,20 @@ class WorldRunner:
                 "world_started",
                 {"entities": [asdict(entity) | {"api_key_env": entity.api_key_env} for entity in self.entities], "world": self.backend.snapshot()},
             )
+            if self.kernel is not None:
+                self.ledger.append(
+                    self.run_id,
+                    tick,
+                    "kernel_bound",
+                    {
+                        "identity": self.kernel.identity.to_dict(),
+                        "goal_contract": self.kernel.goal_contract.to_dict(),
+                        "approved_memory_counts": {
+                            entity.entity_id: len(self.memories[entity.entity_id])
+                            for entity in self.entities
+                        },
+                    },
+                )
             run_started_at = time.monotonic()
             while self.max_ticks <= 0 or tick < self.max_ticks:
                 if self.duration_seconds > 0 and time.monotonic() - run_started_at >= self.duration_seconds:
@@ -139,10 +208,12 @@ class WorldRunner:
                         observation.to_dict(),
                         entity_id=entity.entity_id,
                     )
+                    proposal_source = "model"
                     try:
                         client = self.clients[entity.entity_id]
                         started = time.perf_counter()
                         if self.token_usage[entity.entity_id] >= entity.token_budget:
+                            proposal_source = "platform_budget"
                             proposal = ActionProposal(
                                 "Done",
                                 prediction="Token budget exhausted.",
@@ -179,6 +250,7 @@ class WorldRunner:
                                 "usage": usage,
                                 "tokens_used": self.token_usage[entity.entity_id],
                                 "token_budget": entity.token_budget,
+                                "proposal_source": proposal_source,
                             },
                             entity_id=entity.entity_id,
                         )
@@ -191,6 +263,7 @@ class WorldRunner:
                             entity_id=entity.entity_id,
                         )
                         proposal = ActionProposal("Done", prediction="Provider unavailable.", confidence=0.0)
+                        proposal_source = "platform_fallback"
 
                     policy = self.policy.validate(proposal, observation)
                     if not policy.allowed or policy.action is None:
@@ -198,24 +271,75 @@ class WorldRunner:
                             self.run_id,
                             tick,
                             "action_denied",
-                            {"proposal": proposal.to_dict(), "reason": policy.reason},
+                            {
+                                "proposal": proposal.to_dict(),
+                                "reason": policy.reason,
+                                "proposal_source": proposal_source,
+                            },
                             entity_id=entity.entity_id,
                         )
+                        self._remember_denial(entity, proposal, policy.reason)
                         continue
 
                     result = self.backend.act(agent_index, policy.action)
                     result_payload = result.to_dict()
-                    self.ledger.append(
+                    outcome_event = self.ledger.append(
                         self.run_id,
                         tick,
                         "action_result",
-                        {"proposal": proposal.to_dict(), "policy_reason": policy.reason, **result_payload},
+                        {
+                            "proposal": proposal.to_dict(),
+                            "proposal_source": proposal_source,
+                            "policy_reason": policy.reason,
+                            **result_payload,
+                        },
                         entity_id=entity.entity_id,
                     )
                     self._remember(entity, proposal, result_payload)
+                    if (
+                        self.kernel is not None
+                        and self.stage_verified_outcomes
+                        and proposal_source == "model"
+                    ):
+                        try:
+                            candidate = self.kernel.stage_verified_outcome(
+                                entity_id=entity.entity_id,
+                                event=outcome_event,
+                                proposal=proposal,
+                                result=result_payload,
+                            )
+                        except Exception as error:
+                            self.ledger.append(
+                                self.run_id,
+                                tick,
+                                "learning_error",
+                                {
+                                    "source_event_id": outcome_event["event_id"],
+                                    "error_type": type(error).__name__,
+                                    "error": str(error)[:500],
+                                },
+                                entity_id=entity.entity_id,
+                            )
+                        else:
+                            self.ledger.append(
+                                self.run_id,
+                                tick,
+                                "learning_candidate_staged",
+                                {
+                                    "candidate_id": candidate.id,
+                                    "source_event_id": outcome_event["event_id"],
+                                    "status": candidate.status.value,
+                                },
+                                entity_id=entity.entity_id,
+                            )
                     frame = self.backend.frame_jpeg(agent_index)
                     if frame:
-                        self.ledger.write_frame(entity.entity_id, frame)
+                        self.ledger.write_frame(
+                            entity.entity_id,
+                            frame,
+                            tick=tick,
+                            event_id=outcome_event["event_id"],
+                        )
 
                 self.ledger.append(
                     self.run_id,

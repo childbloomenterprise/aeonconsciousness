@@ -1,0 +1,5 @@
+# Tested worker dependency graph. Optional Codex CLI / NVIDIA NAT not bundled.
+playwright==1.63.0
+pyee==13.0.1
+greenlet==3.5.6
+typing_extensions==4.16.0

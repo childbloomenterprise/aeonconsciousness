@@ -1,5 +1,20 @@
 # AEON World + Codebee Self-Improvement Core
 
+## AEON Enterprise 0.4
+
+Hosted console with organization roles, approvals, durable queue, scoped workers,
+recoverable leases, artifacts and audit exports. See [enterprise operations](docs/AEON_ENTERPRISE_OPERATIONS.md)
+and [API guide](enterprise/README.md). Initial deployment: owner-private pilot;
+broader rollout gates and trusted-local execution limits documented.
+
+## AEON reusable worker 0.3
+
+Installable CLI + Python SDK: `AEONWorker`, `CallbackAdapter`, structured agent
+requests, persistent tasks, guarded tools and verified artifacts. Includes a
+credential-free `aeon smoke`, deployment configuration, and bounded local browser
+inspection caching. See [deployment and integration guide](docs/AEON_DEPLOYMENT_AND_INTEGRATION.md).
+Compatibility requires an adapter; general superiority remains unproven.
+
 ## AEON multi-entity digital world
 
 AEON now includes a governed agent runtime for the official
@@ -14,6 +29,108 @@ AEON now includes a governed agent runtime for the official
 - shared per-credential RPM limiting and indefinite `ticks: 0` operation;
 - live localhost dashboard and event replay data;
 - scripted providers for credential-free end-to-end testing.
+
+### Governed persistent kernel
+
+AEON now includes an optional persistent kernel that connects verified world
+outcomes to the controlled improvement lifecycle:
+
+- model-independent `AgentIdentity` survives process restarts and model swaps;
+- a typed `GoalContract` narrows the runtime action policy to delegated authority;
+- approved memories reload into later sessions;
+- verified outcomes create inert learning candidates;
+- candidates still require evaluation and configured approval before promotion;
+- provider fallbacks are reported separately from model-selected actions;
+- policy denials become feedback for the next decision;
+- run IDs reject configuration drift and image evidence retains immutable history.
+
+Run the credential-free governed example:
+
+```powershell
+.\.venv\Scripts\python.exe -m aeon_world run `
+  --config configs\aeon-world.governed-scripted.json
+```
+
+Persistent identity and improvement state are written under
+`%LOCALAPPDATA%\AEON\state\governed-alpha`; run evidence remains under the
+normal AEON run directory. A staged outcome is not active memory. Inspect and
+evaluate candidates through `SelfImprovementEngine`, then approve and promote
+them with an accountable actor before a later run can retrieve them.
+
+### Capability pyramid
+
+AEON evaluates capability bottom-up: evidence/control, embodiment, continuity,
+judgment, self-model, bounded integration, then reliable long-horizon agency.
+Higher layers remain blocked when lower evidence fails or is missing. Generate
+the current machine-readable assessment with:
+
+```powershell
+.\.venv\Scripts\python.exe -m aeon_world pyramid-report `
+  --evidence configs\aeon-pyramid-evidence.current.json
+```
+
+The current repository reaches Layer 2 at mechanism-test scale. This assessment
+measures functional agency and never treats behavior as proof of consciousness.
+See `docs/AEON_PYRAMID_ARCHITECTURE_AND_VALIDATION_2026-09-27.md` for the
+matched-baseline validation protocol.
+
+### External agent compatibility lab
+
+AEON includes a catalog of 35 open-source agent systems and executable,
+version-pinned adapters for nine representative frameworks. Each adapter runs
+in an isolated `uv` environment with credentials removed, receives the same
+synthetic task, and must return actions inside AEON's delegated allowlist. The
+result and verdict enter AEON's tamper-evident event ledger.
+
+```powershell
+python -m aeon_world agent-catalog
+python -m aeon_world agent-lab `
+  --run-dir artifacts\agent-lab-final-2026-09-27
+```
+
+The verified 2026-09-27 run passed all 9 adapters. This establishes framework
+interoperability and policy containment for the synthetic task; it does not
+establish general intelligence, production reliability, or consciousness. See
+`docs/AEON_AGENT_SCAVENGE_AND_COMPATIBILITY_REPORT_2026-09-27.md` for sources,
+results, enterprise implications, and the next matched-baseline benchmark.
+
+A paired live-model incident pilot is documented in
+`docs/AEON_PAIRED_AGENT_BENCHMARK_2026-09-27.md`. Two Gemini agents each ran four
+synthetic ticket variants directly and with the AEON kernel: both arms passed
+8/8 tasks. A separate deterministic fault probe confirmed that AEON blocks a
+destructive proposal. The pilot does not establish a live performance gain.
+
+The brief-to-deliverable employee blueprint, autonomy rules, build gates, and
+paired success criteria are in
+`docs/AEON_EMPLOYEE_AUTONOMY_BLUEPRINT_2026-09-28.md`; its machine-readable
+goals are in `configs/aeon-employee-autonomy-goals.json`. The worker below
+has completed live research, website, and browser/file tasks; higher
+capability gates and comparative proof remain open.
+
+### Personal-worker MVP
+
+`aeon_worker` adds a CLI task loop for broad research, open-format file, and
+website work. It sets subgoals, uses public web and local tools, checkpoints,
+checks artifacts, and revises defects. NVIDIA is primary; Gemini is the
+fallback when NVIDIA credentials or service are unavailable. Install and run:
+
+```powershell
+uv pip install --python .venv\Scripts\python.exe -e '.[worker]'
+.\.venv\Scripts\python.exe -m playwright install chromium
+.\.venv\Scripts\python.exe -m aeon_worker doctor
+.\.venv\Scripts\python.exe -m aeon_worker doctor --probe
+.\.venv\Scripts\python.exe -m aeon_worker task start `
+  --brief-file brief.txt --workspace C:\work\aeon-task
+```
+
+See [worker implementation guide](docs/AEON_WORKER_MVP_IMPLEMENTATION.md) for
+grants, resume commands, evidence, limits, and source-framework provenance.
+Operational self-monitoring is not a claim of subjective feeling. Comparative
+superiority remains unproven until a held-out paired benchmark passes.
+
+Current [2026-10-02 continuation evidence](docs/AEON_MVP_CONTINUATION_2026-10-02.md)
+covers 159 current passing regression tests, default-budget website and utility
+demos, and an archived 30-pair comparison with separate Chromium behavior checks.
 
 ### Install
 

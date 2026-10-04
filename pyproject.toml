@@ -1,13 +1,15 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "codebee-improve"
-version = "0.2.0"
-description = "Controlled self-improvement core and AEON multi-entity AI2-THOR runtime"
+version = "0.4.0"
+description = "AEON: reusable agent worker with checkpointing, grants, verification and audit"
+readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md", "third_party/*LICENSE"]
 authors = [{name = "Codebee contributors"}]
 dependencies = []
 
@@ -16,9 +18,24 @@ world = [
   "ai2thor==5.0.0",
   "Pillow>=11,<12",
 ]
+worker = [
+  "playwright>=1.50,<2",
+]
+nat = [
+  "nvidia-nat-core==1.9.0",
+]
+deployment = ["playwright==1.63.0"]
 
 [project.scripts]
 aeon-world = "aeon_world.cli:main"
+aeon = "aeon_worker.cli:main"
+aeon-enterprise-worker = "aeon_enterprise.worker:main"
+
+[project.entry-points.'nat.components']
+aeon_personal_worker = "aeon_worker.nat_plugin"
 
 [tool.setuptools.packages.find]
-include = ["codebee_improve*", "aeon_world*"]
+include = ["codebee_improve*", "aeon_world*", "aeon_kernel*", "agent_lab*", "aeon_worker*", "aeon_enterprise*"]
+
+[tool.setuptools.package-data]
+agent_lab = ["*.json", "adapters/*.py"]

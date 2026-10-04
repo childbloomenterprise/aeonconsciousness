@@ -1,0 +1,98 @@
+flowchart TD
+    A["A | Receive task brief<br/>Outcome, workspace, explicit grants, limits"]
+    B["B | Enter worker<br/>CLI, Python SDK, or NeMo NAT wrapper"]
+    C["C | Validate TaskSpec; parse JSON grants<br/>Defaults: 90 min, 50,000 tokens, 32 steps, 3 revisions"]
+    D["D | Create task directory<br/>Atomic checkpoint; deliverables stay in workspace"]
+    E["E | Lock task and start ledger<br/>One active runner per task; recorded events"]
+    F["F | Load persistent kernel<br/>Identity, goal contract, approved memory"]
+    G["G | Ask model to plan<br/>Budget-aware provider call; record usage and route"]
+    H["H | Normalize WorkOrder<br/>Deliverables, requirements, assumptions, subgoals, checks"]
+    I{"I | Loop budget available?<br/>Steps, deadline, recorded model tokens"}
+    J["J | Build bounded context<br/>Plan, tools, recent results, sources, feedback, numeric state"]
+    K["K | Ask model for one decision<br/>Structured JSON; record usage and provider route"]
+    L{"L | Valid ToolAction?<br/>Known tool name and object arguments"}
+    M{"M | Model requests finish?<br/>May write answer.md when no artifact exists"}
+    N{"N | Action allowed and ready?<br/>Kernel allowlist, tool policy, grant, prerequisites"}
+    O["O | Execute one tool<br/>Research, files, browser, site template, or bounded check"]
+    P["P | Persist observable outcome<br/>Results, evidence, artifacts, interactions, numeric state"]
+    Q{"Q | Automatic verification trigger?<br/>Successful action plus task-specific readiness"}
+    R["R | Run mechanical verification<br/>Files, structure, citations, HTML/browser, current interactions"]
+    S["S | Separate model review call<br/>Brief, artifact/source excerpts, check evidence"]
+    T["T | Optional screenshot review<br/>Eligible image route plus HTML screenshots; otherwise skip"]
+    U{"U | Unresolved verification issues?<br/>Mechanical defects or review feedback"}
+    V{"V | Revision allowance remains?"}
+    W["W | Save repair feedback<br/>Increment revision count; model chooses next repair"]
+    X["X | Finalize and reverify<br/>Apply exact completed / partial / failed rule"]
+    Y["Y | If completed, stage learning candidate<br/>Inert proposal; promotion runs separately"]
+    Z["Z | Return and save result<br/>Artifacts, evidence, gaps, usage, route, audit; close tools"]
+
+    INVALID["Invalid action<br/>Record feedback; consumed decision step"]
+    DENIED["Denied or prerequisite failure<br/>Record error; external blocks can remain unresolved"]
+    ISSUES["Mechanical errors found<br/>Skip model review for this verification cycle"]
+    REVIEWFAIL["Text review unavailable<br/>Treat as unresolved issue"]
+    INTERRUPTED["Provider unavailable or unusable structured reply<br/>Save interrupted checkpoint and interrupted result"]
+    LIMIT["Model-call budget reservation exhausted<br/>Stop with best current artifacts"]
+    STOP["Validation or early setup failure<br/>Propagate error; result file not guaranteed"]
+    KEYSTOP["KeyboardInterrupt<br/>Save interrupted checkpoint; rethrow; resume separately"]
+    RUNTIME["Other error inside core run<br/>Record runtime_error; attempt finalization"]
+
+    A --> B
+    B --> C
+    C --> D
+    C -->|Invalid input| STOP
+    D --> E
+    E --> F
+    F --> G
+    E -.->|Early setup error| STOP
+    F -.->|Identity or setup error| STOP
+    G --> H
+    H --> I
+    I -->|Yes| J
+    I -->|No: deadline, steps, or tokens| X
+    J --> K
+    K --> L
+    L -->|No| INVALID
+    INVALID --> I
+    L -->|Yes| M
+    M -->|Yes| R
+    M -->|No| N
+    N -->|Yes| O
+    N -->|No| DENIED
+    DENIED --> P
+    O --> P
+    P --> Q
+    Q -->|No| I
+    Q -->|Yes| R
+    R -->|No mechanical errors| S
+    R -->|Mechanical errors| ISSUES
+    ISSUES --> U
+    S -->|Review returned| T
+    S -.->|Non-budget review exception| REVIEWFAIL
+    REVIEWFAIL --> U
+    T -->|Issues or none; image failure only logged| U
+    U -->|No| X
+    U -->|Yes| V
+    V -->|Yes| W
+    W --> I
+    V -->|No| X
+    X --> Y
+    Y --> Z
+
+    G -.->|Provider error after routing and retries| INTERRUPTED
+    K -.->|Provider error after routing and retries| INTERRUPTED
+    INTERRUPTED --> Z
+    G -.->|Model budget exhausted| LIMIT
+    K -.->|Model budget exhausted| LIMIT
+    S -.->|Model budget exhausted| LIMIT
+    T -.->|Model budget exhausted| LIMIT
+    LIMIT --> X
+    I -.->|KeyboardInterrupt in core run| KEYSTOP
+    I -.->|Other core-run exception| RUNTIME
+    RUNTIME --> X
+
+    classDef model fill:#e8f0fe,stroke:#315da8,color:#172b4d;
+    classDef storage fill:#e8f5e9,stroke:#2e7d32,color:#17351b;
+    classDef caution fill:#fff4df,stroke:#b26a00,color:#573400;
+    class G,K,S,T model;
+    class D,E,F,P,W,Y,Z storage;
+    class INVALID,DENIED,ISSUES,REVIEWFAIL,INTERRUPTED,LIMIT,STOP,KEYSTOP,RUNTIME caution;

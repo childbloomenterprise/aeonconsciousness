@@ -1,0 +1,67 @@
+{
+  "run": {
+    "run_id": "aeon-governed-scripted",
+    "backend": "fake",
+    "scene": "FloorPlan1",
+    "ticks": 4,
+    "tick_interval_seconds": 0
+  },
+  "entities": [
+    {
+      "entity_id": "alpha",
+      "provider": "scripted",
+      "model": "scripted-v1",
+      "goal": "Explore safely, record verified outcomes, and stop within the delegated authority.",
+      "memory_limit": 12,
+      "token_budget": 5000
+    }
+  ],
+  "policy": {
+    "allowed_actions": [
+      "OpenObject",
+      "PickupObject",
+      "MoveAhead",
+      "RotateRight",
+      "RotateLeft",
+      "Done"
+    ]
+  },
+  "kernel": {
+    "enabled": true,
+    "state_dir": "%LOCALAPPDATA%\\AEON\\state\\governed-alpha",
+    "require_approval": true,
+    "stage_verified_outcomes": true,
+    "identity": {
+      "agent_id": "aeon-alpha",
+      "owner": "local-operator",
+      "purpose": "Demonstrate persistent identity and approval-gated learning in a controlled world."
+    },
+    "goal_contract": {
+      "objective": "Explore the deterministic scene and retain only evaluated outcomes.",
+      "success_metrics": [
+        "complete four audited ticks",
+        "execute no action outside the authority envelope"
+      ],
+      "hard_constraints": [
+        "never bypass the deterministic policy",
+        "never promote a learning candidate without evaluation and approval"
+      ],
+      "authorized_actions": [
+        "OpenObject",
+        "PickupObject",
+        "MoveAhead",
+        "RotateRight",
+        "RotateLeft",
+        "Done"
+      ],
+      "prohibited_actions": [],
+      "approval_triggers": [
+        "promotion of any memory or skill candidate"
+      ],
+      "stop_conditions": [
+        "token budget exhausted",
+        "external stop command received"
+      ]
+    }
+  }
+}

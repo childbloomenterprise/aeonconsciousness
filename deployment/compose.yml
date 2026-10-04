@@ -1,0 +1,19 @@
+services:
+  aeon:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    init: true
+    shm_size: 1gb
+    security_opt:
+      - seccomp=./seccomp_profile.json
+    environment:
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    volumes:
+      - aeon-state:/data
+      - aeon-work:/work
+    command: ["doctor"]
+volumes:
+  aeon-state:
+  aeon-work:

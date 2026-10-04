@@ -1,0 +1,7 @@
+{
+  "browser_write_domains": ["example.com"],
+  "external_actions": ["browser_write"],
+  "recipients": [],
+  "max_spend": 0,
+  "currency": "USD"
+}

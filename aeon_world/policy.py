@@ -57,7 +57,7 @@ class ActionPolicy:
     """Deterministic action boundary. Model output never bypasses this class."""
 
     def __init__(self, allowed_actions: set[str] | None = None):
-        self.allowed_actions = allowed_actions or set(ACTION_PARAMETERS)
+        self.allowed_actions = set(ACTION_PARAMETERS) if allowed_actions is None else set(allowed_actions)
 
     def validate(self, proposal: ActionProposal, observation: Observation) -> PolicyDecision:
         if proposal.action not in self.allowed_actions or proposal.action not in ACTION_PARAMETERS:

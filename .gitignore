@@ -3,6 +3,12 @@ __pycache__/
 .codebee/
 .venv/
 .env
+.env.*
+node_modules/
+tmp/
+.docx-review/
+.sites-runtime/
+*.tar.gz
 aeon-runs/
 .aeon-runs/
 *.sqlite3
@@ -11,3 +17,4 @@ aeon-runs/
 dist/
 build/
 *.egg-info/
+.aeon-output/

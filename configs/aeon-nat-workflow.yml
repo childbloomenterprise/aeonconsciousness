@@ -1,0 +1,8 @@
+# Install with: pip install -e ".[worker,nat]"
+# Workspace and grant configuration are owner-controlled, never brief-controlled.
+workflow:
+  _type: aeon_personal_worker
+  workspace: ./artifacts/nat-worker
+  deadline_minutes: 90
+  max_model_tokens: 50000
+  max_steps: 32

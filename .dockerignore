@@ -1,0 +1,26 @@
+# Allowlist: no credentials, personal checkpoints, benchmark data, or venv.
+**
+!pyproject.toml
+!README.md
+!LICENSE
+!THIRD_PARTY_NOTICES.md
+!MANIFEST.in
+!codebee_improve/
+!codebee_improve/**
+!aeon_world/
+!aeon_world/**
+!aeon_kernel/
+!aeon_kernel/**
+!aeon_worker/
+!aeon_worker/**
+!aeon_enterprise/
+!aeon_enterprise/**
+!agent_lab/
+!agent_lab/**
+!third_party/
+!third_party/*LICENSE
+!deployment/
+!deployment/requirements.txt
+**/__pycache__/**
+**/*.pyc
+**/.env*

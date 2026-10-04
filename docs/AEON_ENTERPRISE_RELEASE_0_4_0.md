@@ -28,13 +28,16 @@ Date: 4 October 2026. Initial release boundary: owner-private enterprise pilot.
 | Bundle | Valid ESM `default.fetch`; storage bindings corrected to `DB`/`BUCKET` strings |
 | Configured credential scan | No configured model/admin secret values in staged source |
 | Docker execution | Not run; current host has no Docker daemon |
-| Production npm audit | Local check blocked by registry DNS; CI gate configured |
-| Production hosting | Pending; hosting connector HTTP transport unavailable |
+| Production npm audit | Zero production dependency vulnerabilities; local and Linux CI checks passed |
+| Production hosting | Published successfully; private authenticated Site, D1 and R2 ready |
 
 The HTTP fixture used `deterministic-no-model` and local SQLite/in-memory R2. It
 demonstrates integration, not hosted persistence, live model quality or superiority.
-Hosting provisioning and actual live task execution still need verification after
-connectivity recovers. No URL is certified live by this record.
+Live acceptance also completed with Gemini `gemini-3.5-flash-lite`: 6 steps, 16,161 tokens, valid runtime audit, no reported gaps. The inventory assignment produced 5 hosted artifacts. Independent download checks confirmed all SHA-256 hashes, line totals, total quantity 6 and grand total USD 73.50. This is one task, not a general success-rate estimate.
+
+Live URL: https://aeon-enterprise.childbloomenterprise.chatgpt.site
+
+Site source commit: `a89f3e7fccd7473793c2ef430f3015b92d2d3bd2`. Deployment: `appgdep_6ac1fbbb83a8819191b8e6691e581ee5`. Saved version: `appgprj_6ac1f2adde588191be4ed9a554cbdf7c~appgver_330329436704819182da59a2b4794f3d`. GitHub enterprise source matches the deployed source across all 22 tracked files. Owner-private Windows worker started in the background; computer must remain awake and online. Connection/model secrets remain in an owner-restricted directory outside Git.
 
 ## Known rollout limitations
 

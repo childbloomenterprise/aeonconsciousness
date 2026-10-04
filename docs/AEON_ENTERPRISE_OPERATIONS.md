@@ -65,6 +65,21 @@ policy is not an OS sandbox. Never use it for untrusted tenant briefs. Neither m
 silently falls back. The console stays hosted while workers are offline; queued jobs
 wait. A local worker needs its computer awake, online and its process running.
 
+Windows helpers start the supervisor hidden and optionally enable current-user login
+startup. No administrator privileges or startup credential values are required:
+
+```powershell
+.\deployment\start-enterprise-worker.ps1 -Python .\.venv\Scripts\python.exe
+.\deployment\install-enterprise-autostart.ps1 -Python .\.venv\Scripts\python.exe
+```
+
+The pilot uses `%LOCALAPPDATA%\AEON\enterprise-private\` for protected connection,
+provider keys, job state and logs. Login startup launches the same installation.
+Remove `AEON Enterprise Worker.vbs` from the current user's Startup folder to disable
+automatic launch. Windows Script Host must be permitted by device policy; actual
+logout/restart behavior has not been tested in this session. Keep repository/venv paths
+stable or reinstall the startup launcher after moving them.
+
 ## Authority
 
 | Role | Actions |

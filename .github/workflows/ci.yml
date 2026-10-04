@@ -28,6 +28,22 @@ jobs:
           cache: npm
           cache-dependency-path: enterprise/package-lock.json
       - run: npm ci
+      - run: npm audit --omit=dev --audit-level=moderate
       - run: npm test
       - run: npm run build
       - run: npm run validate
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify HTTP worker bridge
+        env:
+          PYTHONPATH: ..
+        run: |
+          npm run dev > /tmp/aeon-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid"' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8787/api/health >/dev/null; then break; fi
+            sleep 1
+          done
+          python tests/bridge_verify.py

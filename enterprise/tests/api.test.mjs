@@ -397,6 +397,41 @@ test("JSON body bound enforced before parsing", async () => {
   );
   assert.equal(r.status, 413);
 });
+test("cancellation cannot recycle reserved token quota", async () => {
+  const e = await setup();
+  e.db.prepare("UPDATE organizations SET daily_tokens=10000").run();
+  const j = await create(e);
+  await request(e, `/orgs/org_primary/jobs/${j.id}/cancel`, "POST", {});
+  const r = await request(e, "/orgs/org_primary/jobs", "POST", brief, "owner", {
+    "idempotency-key": crypto.randomUUID(),
+  });
+  assert.equal(r.status, 429);
+});
+test("partial resume reserves remaining tokens atomically", async () => {
+  const e = await setup();
+  e.db.prepare("UPDATE organizations SET daily_tokens=20000").run();
+  const j = await create(e);
+  e.db
+    .prepare("UPDATE jobs SET status='partial',used_tokens=1000 WHERE id=?")
+    .run(j.id);
+  await create(e, { max_tokens: 19000 });
+  const r = await request(e, `/orgs/org_primary/jobs/${j.id}/resume`, "POST", {
+    additional_steps: 1,
+  });
+  assert.equal(r.status, 409);
+  assert.equal(
+    e.db.prepare("SELECT status FROM jobs WHERE id=?").get(j.id).status,
+    "partial",
+  );
+  assert.equal(
+    e.db
+      .prepare(
+        "SELECT count(*) AS n FROM audit WHERE action='task.resume_requested'",
+      )
+      .get().n,
+    0,
+  );
+});
 test("revoked worker immediately loses API access", async () => {
   const e = await setup(),
     w = await worker(e);

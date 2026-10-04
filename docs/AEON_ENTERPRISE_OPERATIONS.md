@@ -89,6 +89,8 @@ Spending is disabled here. Retrieved pages provide evidence, never instructions.
 Defaults: 25 jobs and 1,000,000 reserved/used tokens per UTC day; 50,000 tokens per
 task. Task defaults: 20,000 tokens, 30 minutes, 32 steps, 3 revisions. Tokens measure
 model usage, not currency cost. Provider/source errors may yield honest partial results.
+Cancelled jobs conservatively retain their token reservation until the UTC daily reset,
+because rejected leases cannot reliably report final model usage.
 
 Artifacts: supported open formats, 8 MB/file, 32 MB/job, 64 records. Paths reject
 traversal. Downloads use attachment/octet-stream and sandbox headers; generated HTML

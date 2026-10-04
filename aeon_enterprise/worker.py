@@ -250,6 +250,7 @@ def deliver(client: Client, job: dict, lease: str, root: Path, result: dict) -> 
                 "lease_token": lease,
                 "progress": {
                     "phase": "delivering",
+                    "steps": int(result.get("steps", 0)),
                     "tokens": int(result.get("model_tokens", 0)),
                 },
             },

@@ -1,6 +1,9 @@
 include LICENSE THIRD_PARTY_NOTICES.md
 recursive-include third_party *LICENSE
 include docs/AEON_DEPLOYMENT_AND_INTEGRATION.md
+include docs/AEON_ENTERPRISE_OPERATIONS.md
+include docs/AEON_ENTERPRISE_RELEASE_0_4_0.md
+include deployment/enterprise-worker.Dockerfile
 include docs/AEON_WORKER_MVP_IMPLEMENTATION.md
 include docs/AEON_RELEASE_0_3_0_2026-10-03.md
 recursive-include deployment *.txt *.yml *.json *.py *.ps1 Dockerfile

@@ -59,14 +59,29 @@ def package(root: Path, output: Path) -> dict:
             if p.is_file() and allowed(p.relative_to(root))
         )
     files.update(p for p in (root / "docs").glob("*.md"))
-    for name in ("aeon-worker-grant.example.json", "aeon-world.governed-scripted.json", "aeon-nat-workflow.yml"):
+    for name in (
+        "aeon-worker-grant.example.json",
+        "aeon-world.governed-scripted.json",
+        "aeon-nat-workflow.yml",
+    ):
         files.add(root / "configs" / name)
-    secrets = [os.environ[k].encode() for k in ("GEMINI_API_KEY", "NVIDIA_API_KEY", "AEON_ADMIN_KEY", "AEON_SITE_SERVICE_KEY") if os.environ.get(k)]
+    secrets = [
+        os.environ[k].encode()
+        for k in (
+            "GEMINI_API_KEY",
+            "NVIDIA_API_KEY",
+            "AEON_ADMIN_KEY",
+            "AEON_SITE_SERVICE_KEY",
+        )
+        if os.environ.get(k)
+    ]
     for p in files:
         if any(secret in p.read_bytes() for secret in secrets):
             raise ValueError("Configured credential found in source archive input")
     output.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
+    with zipfile.ZipFile(
+        output, "w", zipfile.ZIP_DEFLATED, strict_timestamps=False
+    ) as archive:
         for p in sorted(files):
             archive.write(p, p.relative_to(root).as_posix())
     digest = hashlib.sha256(output.read_bytes()).hexdigest()

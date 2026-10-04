@@ -436,7 +436,7 @@ api.get("/orgs/:orgId/dashboard", async (c) => {
     ),
     usage: await one(
       c.env,
-      "SELECT count(*) AS jobs,coalesce(sum(CASE WHEN status IN ('completed','partial','failed','cancelled') THEN used_tokens ELSE max_tokens END),0) AS reserved_tokens FROM jobs WHERE org_id=? AND created_at>=?",
+      "SELECT count(*) AS jobs,coalesce(sum(CASE WHEN status IN ('completed','partial','failed') THEN used_tokens ELSE max_tokens END),0) AS reserved_tokens FROM jobs WHERE org_id=? AND created_at>=?",
       o.id,
       day,
     ),
@@ -496,7 +496,7 @@ api.post("/orgs/:orgId/jobs", async (c) => {
     `INSERT INTO jobs (id,org_id,title,brief,status,kind,grant,max_tokens,max_steps,max_revisions,deadline_minutes,created_by,idempotency_key,created_at,updated_at)
     SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM jobs WHERE org_id=? AND idempotency_key=?)
     AND (SELECT count(*) FROM jobs WHERE org_id=? AND created_at>=?)<?
-    AND (SELECT coalesce(sum(CASE WHEN status IN ('completed','partial','failed','cancelled') THEN used_tokens ELSE max_tokens END),0) FROM jobs WHERE org_id=? AND created_at>=?)+?<=?`,
+    AND (SELECT coalesce(sum(CASE WHEN status IN ('completed','partial','failed') THEN used_tokens ELSE max_tokens END),0) FROM jobs WHERE org_id=? AND created_at>=?)+?<=?`,
     [
       j,
       a.org.id,
@@ -622,7 +622,7 @@ api.post("/orgs/:orgId/jobs/:jobId/resume", async (c) => {
     c,
     `UPDATE jobs SET status='queued',resume_options=?,max_tokens=max_tokens+?,max_steps=max_steps+?,max_revisions=max_revisions+?,deadline_minutes=deadline_minutes+?,lease_hash=NULL,updated_at=? WHERE id=? AND org_id=? AND status IN ('partial','interrupted')
       AND max_tokens+? <= (SELECT max_task_tokens FROM organizations WHERE id=jobs.org_id)
-      AND (SELECT coalesce(sum(CASE WHEN status IN ('completed','partial','failed','cancelled') THEN used_tokens ELSE max_tokens END),0) FROM jobs WHERE org_id=? AND created_at>=?)+? <= ?`,
+      AND (SELECT coalesce(sum(CASE WHEN status IN ('completed','partial','failed') THEN used_tokens ELSE max_tokens END),0) FROM jobs WHERE org_id=? AND created_at>=?)+? <= ?`,
     [
       JSON.stringify(d),
       d.additional_model_tokens,
@@ -644,7 +644,11 @@ api.post("/orgs/:orgId/jobs/:jobId/resume", async (c) => {
     j.id,
     d,
   );
-  if (!r.meta.changes) fail(409, "Only partial/interrupted tasks can resume.");
+  if (!r.meta.changes)
+    fail(
+      409,
+      "Resume denied: task state changed or organization token quota reached.",
+    );
   return c.json({ status: "queued" });
 });
 api.get("/orgs/:orgId/audit", async (c) => {

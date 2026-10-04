@@ -63,6 +63,7 @@ def package(root: Path, output: Path) -> dict:
         "aeon-worker-grant.example.json",
         "aeon-world.governed-scripted.json",
         "aeon-worker-benchmark-30.json",
+        "aeon-worker-benchmark-holdout-30-v2.json",
         "aeon-nat-workflow.yml",
     ):
         files.add(root / "configs" / name)

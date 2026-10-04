@@ -2,6 +2,9 @@
 
 ## AEON Enterprise 0.4
 
+Live private console: [AEON Enterprise](https://aeon-enterprise.childbloomenterprise.chatgpt.site).
+Sign in with the owning ChatGPT account. Worker computer must stay awake and online.
+
 Hosted console with organization roles, approvals, durable queue, scoped workers,
 recoverable leases, artifacts and audit exports. See [enterprise operations](docs/AEON_ENTERPRISE_OPERATIONS.md)
 and [API guide](enterprise/README.md). Initial deployment: owner-private pilot;

@@ -2,6 +2,8 @@
 
 Date: 4 October 2026. Initial release boundary: owner-private enterprise pilot.
 
+7 October continuation: [worker runtime repair and fresh live acceptance](AEON_ENTERPRISE_WORKER_REPAIR_2026_10_07.md).
+
 ## Implemented
 
 - Hosted control-plane source with organization roles, email-bound invitations,

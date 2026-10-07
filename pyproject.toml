@@ -30,6 +30,7 @@ deployment = ["playwright==1.63.0"]
 aeon-world = "aeon_world.cli:main"
 aeon = "aeon_worker.cli:main"
 aeon-enterprise-worker = "aeon_enterprise.worker:main"
+aeon-enterprise-service = "aeon_enterprise.service:main"
 
 [project.entry-points.'nat.components']
 aeon_personal_worker = "aeon_worker.nat_plugin"

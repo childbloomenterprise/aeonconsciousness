@@ -65,20 +65,29 @@ policy is not an OS sandbox. Never use it for untrusted tenant briefs. Neither m
 silently falls back. The console stays hosted while workers are offline; queued jobs
 wait. A local worker needs its computer awake, online and its process running.
 
-Windows helpers start the supervisor hidden and optionally enable current-user login
-startup. No administrator privileges or startup credential values are required:
+Windows helpers install a dedicated Python, wheel and Chromium outside the checkout,
+start the supervisor hidden and optionally enable current-user login startup.
+Install `uv` first; its managed installation location is documented by
+[Astral](https://docs.astral.sh/uv/reference/environment/#uv_python_install_dir).
+No administrator privileges or startup credential values are required:
 
 ```powershell
-.\deployment\start-enterprise-worker.ps1 -Python .\.venv\Scripts\python.exe
-.\deployment\install-enterprise-autostart.ps1 -Python .\.venv\Scripts\python.exe
+.\deployment\install-enterprise-worker.ps1 -ReleaseWheel .\dist\codebee_improve-0.4.0-py3-none-any.whl
+.\deployment\start-enterprise-worker.ps1
+.\deployment\install-enterprise-autostart.ps1
 ```
 
 The pilot uses `%LOCALAPPDATA%\AEON\enterprise-private\` for protected connection,
-provider keys, job state and logs. Login startup launches the same installation.
+provider keys, job state, logs, dedicated Python, installed packages and browser binaries.
+Startup runs the installed `aeon_enterprise.service` module with Python isolation,
+checks credentials/browser presence before launch and uses a protected copy of the
+starter. Moving the checkout or clearing another tool's Python cache no longer breaks
+this installation. Stop the supervisor before updating the wheel. Preserve connection
+and job state during repair; do not enroll a replacement worker blindly.
 Remove `AEON Enterprise Worker.vbs` from the current user's Startup folder to disable
 automatic launch. Windows Script Host must be permitted by device policy; actual
-logout/restart behavior has not been tested in this session. Keep repository/venv paths
-stable or reinstall the startup launcher after moving them.
+logout/restart behavior has not been tested in this session. Keep the private installation
+directory stable or reinstall the startup launcher after moving it.
 
 ## Authority
 

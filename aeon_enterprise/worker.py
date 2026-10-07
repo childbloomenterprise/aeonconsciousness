@@ -355,7 +355,7 @@ def process_job(
         return result
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="AEON Enterprise outbound worker")
     p.add_argument("--connection", type=Path, required=True)
     p.add_argument("--state-root", type=Path, required=True)
@@ -367,7 +367,7 @@ def main() -> int:
     )
     p.add_argument("--image", default="aeon-enterprise-worker:0.4.0")
     p.add_argument("--once", action="store_true")
-    a = p.parse_args()
+    a = p.parse_args(argv)
     config = read_json(a.connection, None)
     if not isinstance(config, dict):
         p.error("Connection file missing or invalid")

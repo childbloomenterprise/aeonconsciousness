@@ -274,7 +274,11 @@ class WorkspaceTools:
             "npm_test": [npm, "test", "--", "--run"],
             "npm_install": [npm, "install", "--ignore-scripts"],
         }
-        if check == "python_compile":
+        if check == "python_script":
+            if target.suffix != ".py" or not target.is_file():
+                raise ValueError("python_script needs an existing workspace .py file.")
+            command = [sys.executable, str(target)]
+        elif check == "python_compile":
             if target.suffix != ".py":
                 raise ValueError("python_compile needs a .py file.")
             command = [sys.executable, "-m", "py_compile", str(target)]
@@ -292,7 +296,12 @@ class WorkspaceTools:
             command, cwd=self.workspace, env=sanitize_environment(), capture_output=True,
             text=True, encoding="utf-8", errors="replace", timeout=120, shell=False, check=False,
         )
-        return {"check": check, "returncode": result.returncode, "stdout": result.stdout[-5000:], "stderr": result.stderr[-3000:]}
+        output = {"check": check, "returncode": result.returncode, "stdout": result.stdout[-5000:], "stderr": result.stderr[-3000:], "verification_passed": result.returncode == 0}
+        if check == "python_tests":
+            match = re.search(r"Ran (\d+) tests? in", result.stderr)
+            output["tests_run"] = int(match.group(1)) if match else 0
+            output["verification_passed"] = result.returncode == 0 and output["tests_run"] > 0
+        return output
 
     def _ensure_browser(self) -> None:
         if self._page:

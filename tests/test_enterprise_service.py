@@ -54,7 +54,7 @@ class EnterpriseServiceTests(unittest.TestCase):
 
     def test_installed_launcher_passes_mode_and_state_without_mutating_process_arguments(self):
         with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder)
+            root = Path(folder).resolve()
             self.write_connection(root)
             original = sys.argv[:]
             with patch("aeon_enterprise.service.worker_main", return_value=0) as worker:

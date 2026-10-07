@@ -22,30 +22,44 @@ rejects upgrades while that supervisor runs. The existing enrolled worker identi
 credentials and job checkpoints were preserved. Current-user login startup was updated;
 an actual Windows logout/reboot was not performed.
 
+The first repair assignment produced correct files but skipped the requested local
+arithmetic command. Its runtime returned completed, and initial file acceptance passed;
+inspection of the tool ledger exposed missing execution evidence. That process
+acceptance is now marked failed and superseded. The completion gate now requires a
+successful execution receipt tied to current artifact contents when local verification
+is requested. Changed artifacts invalidate prior receipts; zero discovered Python tests
+and syntax compilation do not satisfy the requirement. Receipts persist through resume.
+
 ## Verification evidence
 
 | Check | Result |
 |---|---|
-| Root regression suite | 181 run: 179 passed, 2 optional NVIDIA toolkit skips |
+| Root regression suite | 186 run: 184 passed, 2 optional NVIDIA toolkit skips |
 | New service/startup regression tests | 5 passed |
+| Command evidence regression tests | 5 passed: missing/stale checks, real script, resume, zero tests and explanation-only briefs |
 | Dedicated installer | Completed without administrator privileges |
 | Broken interpreter startup | Rejected before background launch |
 | Installed module launched outside checkout | Running; hosted worker heartbeat observed |
 | Running supervisor upgrade | Rejected before package replacement |
 | Protected installation permissions | Current Windows user full control; inheritance disabled |
 | Hosted health | Ready, D1/R2 available |
-| Fresh live task | Completed in 38 seconds; Gemini `gemini-3.5-flash-lite`; 8,906 tokens |
-| Downloaded artifacts | All 4 SHA-256 hashes match hosted metadata |
+| Evidence-gated live rerun | Completed in 29 seconds; Gemini `gemini-3.5-flash-lite`; 13,946 tokens |
+| Downloaded artifacts | All 5 SHA-256 hashes match hosted metadata |
 | Independent source-row/arithmetic check | 3 original rows, quantity 9, total USD 76.50 |
-| Runtime result | Valid audit, no reported gaps, original enrolled worker |
+| Runtime result | Ledger independently rechecked, current-artifact command receipt, no gaps, original worker |
+| Autonomous recovery | Unsupported check failed; agent wrote an assertion script and ran `python_script` successfully |
 | Previous GitHub release CI | [Passed on commit 4d2246f](https://github.com/childbloomenterprise/aeonconsciousness/actions/runs/37185231466) |
 
-Fresh job: `job_8d2663b30d274fb19ce011b09dde14d2`.
+Verified rerun: `job_991f84f1c4d643b780a0f549e81f7979`.
+
+Superseded file-only acceptance: `job_8d2663b30d274fb19ce011b09dde14d2`.
 
 Artifacts: `worker-acceptance.json`, `worker-acceptance.md`,
-`evidence/runtime-result.json`, `deliverables.zip`.
+`verify_calc.py`, `evidence/runtime-result.json`, `deliverables.zip`.
 
-Local evidence: `artifacts/enterprise-0.4.0/2026-10-07/live-acceptance.json`.
+Local evidence: `artifacts/enterprise-0.4.0/2026-10-07-evidence-gate/live-acceptance.json`
+and `ledger-check.json`. Initial repair CI exposed a test assertion comparing Windows
+short and resolved long temporary paths; the assertion now normalizes paths.
 The repeatable acceptance helper uses an idempotency key and does not enroll or replace
 workers. This is another real task demonstration, not a comparative success-rate study.
 

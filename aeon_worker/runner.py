@@ -180,6 +180,15 @@ def _runtime_fingerprint(artifacts: list[str], tools: WorkspaceTools) -> str:
     return digest.hexdigest()
 
 
+def _command_fingerprint(artifacts: list[str], tools: WorkspaceTools) -> str:
+    digest = hashlib.sha256()
+    for relative in sorted(set(artifacts)):
+        path = tools._path(relative)
+        digest.update(relative.encode("utf-8") + b"\0")
+        digest.update(path.read_bytes() if path.is_file() else b"missing")
+    return digest.hexdigest()
+
+
 def _decision_history(history: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Keep the full audit, but avoid resending generated files every turn."""
     rows = []
@@ -215,7 +224,7 @@ TOOLS_DESCRIPTION = {
     "write_file": {"path": "Workspace-relative open-format file", "content": "Complete UTF-8 content"},
     "replace_text": {"path": "Existing workspace-relative text file", "old": "Unique exact excerpt to replace", "new": "Replacement text"},
     "create_site": {"name": "Name from brief", "role": "Verified role", "tagline": "Original expressive line", "intro": "Short non-factual creative introduction", "audience": "Intended visitors", "palette": "amber|violet|cyan|rose", "sections": [{"heading": "Short heading", "body": "Grounded, useful text"}], "contact_email": "Only if provided or verified"},
-    "run_check": {"check": "python_compile|node_check|python_tests|npm_build|npm_test|npm_install", "path": "Optional workspace-relative file"},
+    "run_check": {"check": "python_script|python_compile|node_check|python_tests|npm_build|npm_test|npm_install", "path": "Optional workspace-relative file. python_script runs an assertion/check script, not merely syntax compilation."},
     "inspect_site": {"path": "Workspace-relative HTML file; captures desktop/mobile screenshots"},
     "browser": {"operation": "navigate|navigate_local|screenshot|click|fill|test_local", "url": "Public URL for navigate; workspace-relative HTML path for navigate_local/test_local", "selector": "CSS selector for click/fill", "value": "Fill text", "cases": "For test_local: 1..12 objects with click,expected and either selector,value or fills:[{selector,value},...]", "effect": "browser_write for local interactions; granted external action type for public pages", "amount": "Required declared amount for spend", "recipient": "Required granted recipient for message"},
     "finish": {"summary": "What was delivered", "answer": "Optional final answer if no file exists"},
@@ -497,7 +506,7 @@ class TaskRunner:
                 result = tools.execute(action.name, action.args)
             except Exception as error:
                 result = {"error": f"{type(error).__name__}: {error}"[:500]}
-        success = "error" not in result and result.get("returncode", 0) == 0
+        success = "error" not in result and result.get("returncode", 0) == 0 and result.get("verification_passed") is not False
         if not success and (not authorization.allowed or "PermissionError" in str(result.get("error", "")) or "not granted" in str(result.get("error", ""))):
             state["denied_actions"] = int(state.get("denied_actions", 0)) + 1
             if action.name == "browser":
@@ -529,6 +538,14 @@ class TaskRunner:
                     promised.append("index.html")
                 state["work_order"]["deliverables"] = promised
                 state["work_order"]["chosen_approach"] = "Portable responsive single-file HTML site using AEON's site renderer."
+        if action.name == "run_check":
+            state.setdefault("command_checks", []).append({
+                "check": action.args.get("check"), "path": action.args.get("path", "."),
+                "returncode": result.get("returncode"), "passed": success,
+                "artifact_fingerprint": _command_fingerprint(state["artifacts"], tools),
+                "tests_run": result.get("tests_run"),
+            })
+            state["command_checks"] = state["command_checks"][-64:]
         if action.name == "browser" and success and action.args.get("operation") in {"click", "fill", "test_local"} and urllib.parse.urlparse(str(result.get("url", ""))).scheme == "file":
             parsed = urllib.parse.urlparse(str(result["url"]))
             active_url = urllib.parse.urlunparse(parsed._replace(query="", fragment=""))
@@ -568,6 +585,13 @@ class TaskRunner:
         findings, inspections = verify_artifacts(tools, state["artifacts"], task_type, state["sources"], inspection_cache=self.inspection_cache)
         state.setdefault("efficiency", {}).update({"inspection_cache_hits": self._inspection_offsets["inspection_cache_hits"] + self.inspection_cache.hits, "browser_inspections": self._inspection_offsets["browser_inspections"] + self.inspection_cache.misses})
         existing_artifacts = [path for path in state["artifacts"] if tools._path(path).is_file()]
+        if spec.require_local_check:
+            fingerprint = _command_fingerprint(state["artifacts"], tools)
+            if not any(check.get("passed") is True and check.get("returncode") == 0
+                       and check.get("check") in {"python_script", "python_tests", "npm_test", "npm_build"}
+                       and check.get("artifact_fingerprint") == fingerprint
+                       for check in state.get("command_checks", [])):
+                findings.append(VerificationFinding("error", "task", "Requested local verification command has no successful receipt for current artifacts. Write an assertion/check script and use run_check python_script, or run a nonempty test suite/build. Syntax compilation and zero discovered tests do not satisfy this requirement. Rerun after changing artifacts."))
         if task_type in {"website", "code"}:
             for path in existing_artifacts:
                 if Path(path).suffix.lower() != ".html":
@@ -684,7 +708,7 @@ class TaskRunner:
             "sources": [{"url": item["url"], "excerpt": item["excerpt"][:500]} for item in state["sources"][:8]],
             "mechanical_findings": state["findings"],
             "local_interaction_checks": state.get("local_interactions", []),
-            "command_checks": [item.get("result", {}) for item in state["history"] if item.get("tool") == "run_check"],
+            "command_checks": state.get("command_checks", []) + [item.get("result", {}) for item in state["history"] if item.get("tool") == "run_check"],
         }
         raw = self._call(state, ledger, REVIEW_SYSTEM, payload, "review")
         issues = raw.get("issues", [])
@@ -780,6 +804,7 @@ class TaskRunner:
             ).to_dict() for path in state["artifacts"]],
             "sources": state["sources"],
             "findings": state["findings"],
+            "command_checks": state.get("command_checks", []),
             "unresolved_gaps": list(dict.fromkeys([item["issue"] for item in state["findings"] if item["severity"] == "error"] + list(state.get("feedback", [])) + ["External action blocked by task grant: " + item["action"] + " " + item["target"] for item in state.get("blocked_actions", [])] + ([limit_gaps[reason]] if reason in limit_gaps and status != "completed" else []))),
             "inspections": state["inspections"],
             "visual_review": state.get("visual_review", "not_applicable"),
@@ -911,7 +936,7 @@ class TaskRunner:
                 ready_document = action.name in {"write_file", "replace_text"} and all_declared and kind in {"research", "browser_file"}
                 checked_build = any(item.get("tool") in {"inspect_site", "run_check"} or item.get("tool") == "browser" and item.get("args", {}).get("operation") == "test_local" and item.get("result", {}).get("passed") is True for item in state["history"])
                 last_write = max((index for index, item in enumerate(state["history"]) if item.get("tool") in {"write_file", "replace_text", "create_site"}), default=-1)
-                clean_check_after_write = any(item.get("tool") == "run_check" and item.get("result", {}).get("returncode") == 0 for item in state["history"][last_write + 1:])
+                clean_check_after_write = any(item.get("tool") == "run_check" and item.get("result", {}).get("returncode") == 0 and item.get("result", {}).get("verification_passed") is not False for item in state["history"][last_write + 1:])
                 current_browser_pass = action.name == "browser" and action.args.get("operation") == "test_local" and state["history"][-1].get("result", {}).get("passed") is True
                 html_utility = any(Path(item).suffix.lower() == ".html" for item in declared) and not any(Path(item).suffix.lower() in {".py", ".ts", ".tsx", ".jsx", ".mjs"} for item in declared)
                 ready_build = (action.name in {"write_file", "replace_text", "inspect_site", "run_check"} or current_browser_pass) and all_declared and (

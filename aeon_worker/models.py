@@ -21,6 +21,16 @@ def deadline_minutes_from_brief(brief: str) -> int | None:
     return amount if 1 <= amount <= 24 * 60 else None
 
 
+def local_command_required(brief: str) -> bool:
+    """Recognize explicit execution requests, not instructions to explain commands."""
+    for sentence in re.split(r"[.!?\n]", brief):
+        if re.search(r"\b(?:explain|describe|how to|do not|don't|without|no local)\b", sentence, re.IGNORECASE):
+            continue
+        if re.search(r"\b(?:verify|check|test|run|execute)\b.{0,200}\b(?:local commands?|run_check)\b", sentence, re.IGNORECASE):
+            return True
+    return False
+
+
 @dataclass(frozen=True, slots=True)
 class ActionGrant:
     """Explicit authority for effects outside public reading and the task workspace."""
@@ -66,10 +76,14 @@ class TaskSpec:
     max_steps: int = 32
     max_revisions: int = 3
     grant: ActionGrant = field(default_factory=ActionGrant)
+    require_local_check: bool = False
 
     def __post_init__(self) -> None:
         if not self.brief.strip():
             raise ValueError("Task brief cannot be empty.")
+        if not isinstance(self.require_local_check, bool):
+            raise ValueError("require_local_check must be boolean.")
+        object.__setattr__(self, "require_local_check", self.require_local_check or local_command_required(self.brief))
         if not self.task_id.startswith("task-") or not self.task_id[5:].replace("-", "").isalnum():
             raise ValueError("Invalid task id.")
         if not 1 <= self.deadline_minutes <= 24 * 60:

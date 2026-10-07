@@ -81,7 +81,10 @@ def main() -> None:
         assert item["line_total"] == quantity * price
     assert content["total_quantity"] == 9 and content["grand_total"] == Decimal("76.50")
     assert job["result"]["audit_valid"] and not job["result"]["unresolved_gaps"]
-    result = {"site_url": client.origin, "job_id": job_id, "status": job["status"], "model_route": job["result"].get("provider_route"), "tokens": job["used_tokens"], "elapsed_seconds": job["updated_at"] - job["created_at"], "audit_valid": True, "unresolved_gaps": [], "artifacts": records, "independent_source_rows_and_decimal_arithmetic": True, "same_enrolled_worker": True, "worker_mode": connection["mode"]}
+    checks = job["result"].get("command_checks", [])
+    successful = [check for check in checks if check.get("passed") is True and check.get("returncode") == 0 and check.get("check") in {"python_script", "python_tests"}]
+    assert successful, "Agent skipped the requested local arithmetic command"
+    result = {"site_url": client.origin, "job_id": job_id, "status": job["status"], "model_route": job["result"].get("provider_route"), "tokens": job["used_tokens"], "elapsed_seconds": job["updated_at"] - job["created_at"], "audit_valid": True, "unresolved_gaps": [], "artifacts": records, "independent_source_rows_and_decimal_arithmetic": True, "local_command_receipts": successful, "same_enrolled_worker": True, "worker_mode": connection["mode"]}
     atomic_write_json(output / "live-acceptance.json", result)
     print(json.dumps(result))
 

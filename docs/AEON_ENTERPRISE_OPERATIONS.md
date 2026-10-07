@@ -148,6 +148,15 @@ Private pilot demonstrates the complete task-to-artifact path.
 
 ## Verification
 
+Worker completion uses recorded evidence. An explicit request to verify using a local
+command requires a successful execution receipt matching current artifact hashes;
+later file changes invalidate it. SDK callers can set `TaskSpec.require_local_check`,
+and CLI callers can use `--require-local-check` to avoid relying on phrase recognition.
+`run_check python_script` runs a workspace assertion script with a bounded timeout and
+sanitized environment. Zero discovered Python tests and syntax compilation cannot satisfy
+that execution requirement. Receipt existence does not prove every assertion is adequate:
+artifact review and task-specific independent acceptance checks still matter.
+
 Root: `python -m unittest discover -s tests`. Enterprise: `npm test`, `npm run build`,
 `npm run validate`. Local UI: `python enterprise/tests/browser_verify.py` with preview
 running. CI covers Python and Node checks. Live evidence is recorded after deployment.

@@ -39,6 +39,7 @@ def main(argv: list[str] | None = None) -> int:
     start.add_argument("--max-model-tokens", type=int, default=50_000)
     start.add_argument("--max-steps", type=int, default=32)
     start.add_argument("--max-revisions", type=int, default=3)
+    start.add_argument("--require-local-check", action="store_true", help="Require successful execution evidence against current artifacts")
     start.add_argument("--result-only", action="store_true", help="Emit one final JSON object for subprocess integrations")
 
     for name in ("status", "resume", "result"):
@@ -136,6 +137,7 @@ def main(argv: list[str] | None = None) -> int:
                 max_model_tokens=args.max_model_tokens,
                 max_steps=args.max_steps,
                 max_revisions=args.max_revisions,
+                require_local_check=args.require_local_check,
             )
             if not args.result_only:
                 _json({"task_id": spec.task_id, "status": "starting", "workspace": spec.workspace})

@@ -1,0 +1,13 @@
+{
+  "code_commit": "fa523757b86cd97e83526152f9046f765a5b3670",
+  "github_code_push": "succeeded after transient DNS/connectivity failure",
+  "sites_status": "succeeded",
+  "sites_deployment_id": "appgdep_6aca2e0b2460819187114a7017e25801",
+  "vercel_status": "ERROR",
+  "vercel_deployment_id": "dpl_28d29CpfMUSEcS2pWB5ApamxiAas",
+  "vercel_project_id": "prj_ppPECW3nYWDdu4g1LTr7OKQtWqNT",
+  "vercel_framework": "fastapi",
+  "vercel_error_code": "FASTAPI_ENTRYPOINT_NOT_FOUND",
+  "vercel_configuration_changed": false,
+  "all_remote_checks_green": false
+}

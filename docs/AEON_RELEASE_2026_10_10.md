@@ -35,4 +35,6 @@ https://aeon-enterprise.childbloomenterprise.chatgpt.site — owner allowlist on
 
 http://127.0.0.1:8787 restored. Launcher restartable, not verified OS boot service; host/task termination has stopped it between sessions. No always-on guarantee.
 
+GitHub code commit `fa523757b86cd97e83526152f9046f765a5b3670` pushed successfully after transient connectivity failures. A separate Git-linked Vercel project `aeonconsciousness` auto-build failed with `FASTAPI_ENTRYPOINT_NOT_FOUND`: project configured as FastAPI, but this repository provides a Python worker/library and a Sites Cloudflare Worker. Its suggested LangGraph adapter is not a verified FastAPI application. No Vercel target, entrypoint or sharing was changed. This failing external check remains open and does not invalidate the separately successful owner-private Sites deployment. Do not describe all remote checks as green.
+
 Open: matched effective tools/budgets, complex multi-seed reroll and failure/interruption round4; independent blind **30 genuinely unseen pairs**; sandbox/egress, customer SSO, key vault/proxy, fresh-host/hosted restore, retention/deletion, monitoring/capacity and external-effect reconciliation. Seen benchmark briefs cannot count as unseen. Numeric operational state does not establish feelings/consciousness.

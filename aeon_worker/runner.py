@@ -16,7 +16,7 @@ from aeon_kernel import AEONKernel, AgentIdentity, GoalContract
 from aeon_world.ledger import EventLedger, default_runtime_root, utc_now
 from codebee_improve.storage import atomic_write_json, file_lock, read_json
 
-from .models import TOOL_NAMES, Artifact, SourceEvidence, TaskSpec, ToolAction, VerificationFinding, WorkOrder
+from .models import TOOL_NAMES, Artifact, SourceEvidence, TaskSpec, ToolAction, VerificationFinding, WorkOrder, local_command_required, public_research_forbidden, source_evidence_required
 from .providers import ProviderRouter, StructuredProvider, StructuredContentError
 from .tools import WorkspaceTools
 from .verification import InspectionCache, cited_urls, verify_artifacts
@@ -205,7 +205,7 @@ def _decision_history(history: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 result[key] = raw[:1200] + "\n[Middle omitted from decision context.]\n" + raw[-800:]
         for check in result.get("checks", []):
             if isinstance(check.get("observed_text"), str):
-                check["observed_text"] = check["observed_text"][:500]
+                check["observed_text"] = check["observed_text"][:500] if check.get("passed") is False else "[Observed passing output retained in audit.]"
         rows.append(row)
     return rows
 
@@ -226,7 +226,7 @@ TOOLS_DESCRIPTION = {
     "create_site": {"name": "Name from brief", "role": "Verified role", "tagline": "Original expressive line", "intro": "Short non-factual creative introduction", "audience": "Intended visitors", "palette": "amber|violet|cyan|rose", "sections": [{"heading": "Short heading", "body": "Grounded, useful text"}], "contact_email": "Only if provided or verified"},
     "run_check": {"check": "python_script|python_compile|node_check|python_tests|npm_build|npm_test|npm_install", "path": "Optional workspace-relative file. python_script runs an assertion/check script, not merely syntax compilation."},
     "inspect_site": {"path": "Workspace-relative HTML file; captures desktop/mobile screenshots"},
-    "browser": {"operation": "navigate|navigate_local|screenshot|click|fill|test_local", "url": "Public URL for navigate; workspace-relative HTML path for navigate_local/test_local", "selector": "CSS selector for click/fill", "value": "Fill text", "cases": "For test_local: 1..12 objects with click,expected and either selector,value or fills:[{selector,value},...]", "effect": "browser_write for local interactions; granted external action type for public pages", "amount": "Required declared amount for spend", "recipient": "Required granted recipient for message"},
+    "browser": {"operation": "navigate|navigate_local|screenshot|click|fill|test_local", "url": "Public URL for navigate; workspace-relative HTML path for navigate_local/test_local", "selector": "CSS selector for click/fill", "value": "Fill text", "cases": "For test_local: 1..12 objects with click,expected and either selector,value or fills:[{selector,value},...]. fills contains objects, never flattened strings/null. If batching fails, use navigate_local then separate fill actions and click.", "test_local_example": {"operation": "test_local", "url": "index.html", "cases": [{"fills": [{"selector": "#bill", "value": "100"}, {"selector": "#tip", "value": "15"}], "click": "#calculate", "expected": "115"}]}, "effect": "browser_write for local interactions; granted external action type for public pages", "amount": "Required declared amount for spend", "recipient": "Required granted recipient for message"},
     "finish": {"summary": "What was delivered", "answer": "Optional final answer if no file exists"},
 }
 
@@ -296,6 +296,11 @@ class TaskStore:
         return value
 
     def result(self, task_id: str) -> dict[str, Any]:
+        checkpoint = read_json(self.directory(task_id) / "checkpoint.json", {})
+        if isinstance(checkpoint, dict) and checkpoint.get("status") in {"completed", "partial", "failed"}:
+            saved = checkpoint.get("final_result")
+            if isinstance(saved, dict):
+                return saved
         value = read_json(self.directory(task_id) / "result.json", None)
         if not isinstance(value, dict):
             raise FileNotFoundError(f"Task {task_id} has no final result yet.")
@@ -331,6 +336,11 @@ class TaskRunner:
             raise FileNotFoundError(f"Task {task_id} not found.")
         with file_lock(directory / "run.lock"):
             state = self.store.load(task_id)
+            # Owning the OS-backed lock proves no previous execution is active.
+            # A hard process exit leaves the last durable status as running.
+            if state["status"] == "running":
+                state["status"] = "interrupted"
+                self.store.save(state)
             if any(extensions):
                 if state["status"] not in {"partial", "interrupted"}:
                     raise ValueError("Budget extension requires a partial or interrupted task.")
@@ -349,12 +359,12 @@ class TaskRunner:
                     "revisions": additional_revisions,
                 })
                 state["status"] = "interrupted"
-                state["phase"] = "execute"
+                state["phase"] = "execute" if state.get("work_order") else "plan"
                 state.pop("finished_at", None)
                 self.store.save(state)
             if state["status"] == "partial" and str(state.get("error", "")).startswith("ProviderError:"):
                 state["status"] = "interrupted"
-                state["phase"] = "execute"
+                state["phase"] = "execute" if state.get("work_order") else "plan"
                 state.pop("finished_at", None)
                 self.store.save(state)
             if state["status"] in {"completed", "partial", "failed"}:
@@ -370,7 +380,7 @@ class TaskRunner:
         budget_aware = "max_output_tokens" in parameters or any(item.kind == inspect.Parameter.VAR_KEYWORD for item in parameters.values())
         if budget_aware:
             remaining = int(state["spec"]["max_model_tokens"]) - int(state["tokens"])
-            estimated_input = (len(system) + len(json.dumps(payload, ensure_ascii=False))) // 2 + 512 + (5000 * len(image_paths or []))
+            estimated_input = (len(system) + len(json.dumps(payload, ensure_ascii=False))) // 4 + 512 + (5000 * len(image_paths or []))
             available_output = min(8192 if kind == "decision" else 2048, remaining - estimated_input)
             if available_output < 512:
                 raise ModelBudgetExhausted("Remaining model-token budget cannot cover the next request.")
@@ -486,6 +496,8 @@ class TaskRunner:
         authorization = kernel.goal_contract.authorize(action.name)
         if not authorization.allowed:
             result: dict[str, Any] = {"error": authorization.reason}
+        elif public_research_forbidden(spec.brief) and (action.name in {"search_web", "read_url"} or action.name == "browser" and action.args.get("operation") == "navigate"):
+            result = {"error": "The brief forbids public research/browsing. Use the provided context and write the requested deliverable; no inspected public source or citation is required."}
         elif action.name == "create_site" and _requires_interactive_site(spec.brief):
             result = {"error": "create_site renders a static template without working controls. Write a custom index.html with matching input/button IDs and JavaScript, then browser-test it."}
         elif _draft_due(spec, state) and (action.name in {"search_web", "read_url"} or action.name == "browser" and action.args.get("operation") == "navigate"):
@@ -495,9 +507,9 @@ class TaskRunner:
         elif action.name == "search_web" and not state["sources"] and any(item.get("tool") == "search_web" for item in state["history"]):
             leads = [hit.get("url") for item in reversed(state["history"]) if item.get("tool") == "search_web" for hit in item.get("result", {}).get("results", [])]
             result = {"error": "Search already returned leads. Open one relevant result using read_url or browser navigate before searching again.", "suggested_urls": leads[:4]}
-        elif action.name == "write_file" and state.get("work_order", {}).get("task_type") in {"research", "browser_file"} and not state["sources"]:
+        elif action.name == "write_file" and source_evidence_required(state.get("work_order", {}).get("task_type", "general"), spec.brief) and not state["sources"]:
             result = {"error": "No inspected source yet. Open an exact public URL with read_url or browser navigate before writing a sourced result. Search snippets do not count as inspected evidence."}
-        elif action.name == "write_file" and state.get("work_order", {}).get("task_type") in {"research", "browser_file"} and (
+        elif action.name == "write_file" and source_evidence_required(state.get("work_order", {}).get("task_type", "general"), spec.brief) and (
             unknown := sorted({url for url in cited_urls(str(action.args.get("content", ""))) if _source_key(url) not in {_source_key(item["url"]) for item in state["sources"]}})
         ):
             result = {"error": "The draft cites uninspected URLs. Open each source with read_url or browser navigate first.", "uninspected_urls": unknown[:8]}
@@ -569,7 +581,8 @@ class TaskRunner:
             compact_result = {**result, "text": str(result["text"])[:2500], "truncated_for_model": len(str(result["text"])) > 2500}
         elif len(json.dumps(result)) > 6000:
             compact_result = {"preview": json.dumps(result, ensure_ascii=False)[:6000], "truncated_for_model": True}
-        state["history"].append({"tool": action.name, "args": action.args if action.name not in {"write_file", "replace_text"} else {"path": action.args.get("path")}, "result": compact_result})
+        history_args = action.args if action.name != "write_file" else {"path": action.args.get("path")}
+        state["history"].append({"tool": action.name, "args": history_args, "result": compact_result})
         state["history"] = state["history"][-12:]
         if action.decision_summary:
             state["decision_summaries"].append(action.decision_summary)
@@ -582,10 +595,15 @@ class TaskRunner:
 
     def _verify(self, spec: TaskSpec, state: dict[str, Any], tools: WorkspaceTools, ledger: EventLedger) -> list[dict[str, Any]]:
         task_type = str(state.get("work_order", {}).get("task_type", "general"))
-        findings, inspections = verify_artifacts(tools, state["artifacts"], task_type, state["sources"], inspection_cache=self.inspection_cache)
+        findings, inspections = verify_artifacts(tools, state["artifacts"], task_type, state["sources"], inspection_cache=self.inspection_cache,
+            require_sources=source_evidence_required(task_type, spec.brief))
         state.setdefault("efficiency", {}).update({"inspection_cache_hits": self._inspection_offsets["inspection_cache_hits"] + self.inspection_cache.hits, "browser_inspections": self._inspection_offsets["browser_inspections"] + self.inspection_cache.misses})
         existing_artifacts = [path for path in state["artifacts"] if tools._path(path).is_file()]
-        if spec.require_local_check:
+        require_execution = spec.require_local_check or any(
+            local_command_required(str(requirement))
+            for requirement in state.get("work_order", {}).get("hard_requirements", [])
+        )
+        if require_execution:
             fingerprint = _command_fingerprint(state["artifacts"], tools)
             if not any(check.get("passed") is True and check.get("returncode") == 0
                        and check.get("check") in {"python_script", "python_tests", "npm_test", "npm_build"}
@@ -610,9 +628,14 @@ class TaskRunner:
                             continue
                         seen.add(key)
                         if check["passed"] is False:
-                            findings.append(VerificationFinding("error", path, f"Local browser case failed: input {check.get('value')!r}, expected {check.get('expected')!r}. Repair and rerun this case."))
+                            inputs = check.get("fills") or [{"selector": check.get("selector"), "value": check.get("value")}]
+                            observed = str(check.get("observed_text", ""))[:600]
+                            findings.append(VerificationFinding("error", path,
+                                f"Local browser case failed: inputs {json.dumps(inputs)}, expected {check.get('expected')!r}, "
+                                f"observed {observed!r}. Inspect the current source. If behavior meets the brief and only unrequired "
+                                "wording differs, correct the test expectation rather than changing working output to an invented phrase. Rerun this case."))
         research_brief = re.sub(r"\b(?:no\s+(?:publishing\s+or\s+)?research(?:\s+(?:needed|required))?|do\s+not\s+research)\b", "", spec.brief, flags=re.IGNORECASE)
-        if task_type == "website" and re.search(r"\b(?:research|public sources|verify (?:the )?identity)\b", research_brief, re.IGNORECASE) and not state["sources"]:
+        if task_type == "website" and not public_research_forbidden(spec.brief) and re.search(r"\b(?:research|public sources|verify (?:the )?identity)\b", research_brief, re.IGNORECASE) and not state["sources"]:
             findings.append(VerificationFinding("error", "task", "Website brief required public research, but no source page was inspected."))
         promised = [str(item) for item in state.get("work_order", {}).get("deliverables", []) if Path(str(item)).suffix.lower() in {".html", ".css", ".js", ".md", ".txt", ".csv", ".json", ".py", ".ts", ".tsx", ".jsx"}]
         for path in promised:
@@ -783,7 +806,6 @@ class TaskRunner:
                 candidate_id = candidate.id
             except Exception as error:
                 ledger.append(spec.task_id, state["steps"], "learning_error", {"type": type(error).__name__})
-        self.store.save(state)
         limit_gaps = {
             "model_token_budget": "Model-token budget exhausted before all acceptance checks passed.",
             "deadline": "Task deadline reached before all acceptance checks passed.",
@@ -829,6 +851,10 @@ class TaskRunner:
             "audit_valid": ledger.verify(spec.task_id),
             "finished_at": state["finished_at"],
         }
+        # Save status and its matching result together. If the process exits
+        # before the convenience result file is written, replay remains exact.
+        state["final_result"] = result
+        self.store.save(state)
         atomic_write_json(self.store.directory(spec.task_id) / "result.json", result)
         return result
 
@@ -964,7 +990,10 @@ class TaskRunner:
                         continue
                     state["feedback"] = issues
                     return self._finish(spec, state, tools, kernel, ledger, reason="review_failed")
-                state["feedback"] = []
+                if action.name == "browser" and action.args.get("operation") == "test_local" and state["history"][-1].get("result", {}).get("passed") is False:
+                    state["feedback"] = [item["issue"] for item in self._verify(spec, state, tools, ledger) if item["severity"] == "error"]
+                else:
+                    state["feedback"] = []
                 self.store.save(state)
             return self._finish(spec, state, tools, kernel, ledger, reason="step_budget")
         except KeyboardInterrupt:

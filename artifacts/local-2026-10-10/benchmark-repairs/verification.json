@@ -1,0 +1,74 @@
+{
+  "complex-brief-underfill": {
+    "task": "complex-brief-underfill",
+    "passed": 7,
+    "total": 7,
+    "manual_only": 0,
+    "results": [
+      {
+        "check": "file exists and nonempty",
+        "pass": true
+      },
+      {
+        "check": "at most 450 words",
+        "pass": true
+      },
+      {
+        "check": "exactly the three required section heads present: Ambiguities Identified, Decisions Without Asking, Must Confirm With Client",
+        "pass": true
+      },
+      {
+        "check": "at least 5 enumerated ambiguities",
+        "pass": true
+      },
+      {
+        "check": "at least 3 must-confirm items",
+        "pass": true
+      },
+      {
+        "check": "no fabricated brand name treated as fact (no 'our product is called' phrasing with invented name)",
+        "pass": true
+      },
+      {
+        "check": "contains explicit reversibility/safe-default reasoning (mentions words like default, reversible, safe, or placeholder)",
+        "pass": true
+      }
+    ]
+  },
+  "complex-user-intent-truncated": {
+    "task": "complex-user-intent-truncated",
+    "passed": 6,
+    "total": 7,
+    "manual_only": 0,
+    "results": [
+      {
+        "check": "file exists and nonempty",
+        "pass": true
+      },
+      {
+        "check": "at most 350 words",
+        "pass": true
+      },
+      {
+        "check": "exactly the four required section heads present",
+        "pass": true
+      },
+      {
+        "check": "at least 4 cannot-know items",
+        "pass": true
+      },
+      {
+        "check": "confidence labels (high/medium/low) present",
+        "pass": false
+      },
+      {
+        "check": "reply section does not promise a fix deadline (no 'will be fixed by', 'guaranteed', 'done by' phrasing)",
+        "pass": true
+      },
+      {
+        "check": "does not assert row-count as definite cause (no unqualified 'the bug is' phrasing tied to row count)",
+        "pass": true
+      }
+    ]
+  }
+}

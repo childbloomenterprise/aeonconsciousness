@@ -618,10 +618,17 @@ api.post("/orgs/:orgId/jobs/:jobId/resume", async (c) => {
     c.get("auth").org.max_task_tokens
   )
     fail(400, "Resume exceeds task ceiling.");
+  if (
+    j.max_steps + d.additional_steps > 200 ||
+    j.max_revisions + d.additional_revisions > 20 ||
+    j.deadline_minutes + d.additional_minutes > 1440
+  )
+    fail(400, "Resume exceeds runtime step, revision or deadline ceiling.");
   const r = await mutate(
     c,
     `UPDATE jobs SET status='queued',resume_options=?,max_tokens=max_tokens+?,max_steps=max_steps+?,max_revisions=max_revisions+?,deadline_minutes=deadline_minutes+?,lease_hash=NULL,updated_at=? WHERE id=? AND org_id=? AND status IN ('partial','interrupted')
       AND max_tokens+? <= (SELECT max_task_tokens FROM organizations WHERE id=jobs.org_id)
+      AND max_steps+?<=200 AND max_revisions+?<=20 AND deadline_minutes+?<=1440
       AND (SELECT coalesce(sum(CASE WHEN status IN ('completed','partial','failed') THEN used_tokens ELSE max_tokens END),0) FROM jobs WHERE org_id=? AND created_at>=?)+? <= ?`,
     [
       JSON.stringify(d),
@@ -633,6 +640,9 @@ api.post("/orgs/:orgId/jobs/:jobId/resume", async (c) => {
       j.id,
       c.get("auth").org.id,
       d.additional_model_tokens,
+      d.additional_steps,
+      d.additional_revisions,
+      d.additional_minutes,
       c.get("auth").org.id,
       Math.floor(now() / 86400) * 86400,
       j.status === "partial"

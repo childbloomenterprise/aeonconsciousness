@@ -39,7 +39,7 @@ jobs:
         env:
           PYTHONPATH: ..
         run: |
-          npm run dev > /tmp/aeon-preview.log 2>&1 &
+          npm run dev -- --ephemeral > /tmp/aeon-preview.log 2>&1 &
           preview_pid=$!
           trap 'kill "$preview_pid"' EXIT
           for attempt in $(seq 1 20); do

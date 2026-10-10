@@ -21,12 +21,32 @@ def deadline_minutes_from_brief(brief: str) -> int | None:
     return amount if 1 <= amount <= 24 * 60 else None
 
 
+def public_research_forbidden(brief: str) -> bool:
+    return bool(re.search(
+        r"\b(?:no (?:web |external |public )?(?:browsing|research(?!\s+(?:needed|required)))|"
+        r"do not (?:browse|research|use external sources)|"
+        r"don't (?:browse|research)|without (?:web |external )?(?:browsing|research))\b",
+        brief, re.IGNORECASE,
+    ))
+
+
+def source_evidence_required(task_type: str, brief: str) -> bool:
+    return task_type in {"research", "browser_file"} and not (
+        public_research_forbidden(brief)
+        or re.search(r"\bno (?:external )?research (?:needed|required)\b", brief, re.IGNORECASE)
+    )
+
+
 def local_command_required(brief: str) -> bool:
     """Recognize explicit execution requests, not instructions to explain commands."""
     for sentence in re.split(r"[.!?\n]", brief):
         if re.search(r"\b(?:explain|describe|how to|do not|don't|without|no local)\b", sentence, re.IGNORECASE):
             continue
-        if re.search(r"\b(?:verify|check|test|run|execute)\b.{0,200}\b(?:local commands?|run_check)\b", sentence, re.IGNORECASE):
+        if re.search(
+            r"\b(?:verify|check|test|run|execute)\b.{0,200}\b(?:"
+            r"local (?:commands?|assertions?|checks?|tests?|(?:assertion|verification|validation) (?:checks?|scripts?))"
+            r"|run_check)\b", sentence, re.IGNORECASE,
+        ):
             return True
     return False
 

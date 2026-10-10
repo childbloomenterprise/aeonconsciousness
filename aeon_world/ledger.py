@@ -4,6 +4,7 @@ import hashlib
 import json
 import sqlite3
 import threading
+import time
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -335,15 +336,30 @@ class EventLedger:
         return history_path
 
     def read_control(self) -> str:
-        if not self.control_path.exists():
-            return "run"
-        try:
-            value = json.loads(self.control_path.read_text(encoding="utf-8"))
-            return str(value.get("command", "run"))
-        except (OSError, json.JSONDecodeError):
-            return "run"
+        # Windows readers can temporarily deny deletion of an open file.
+        # Serialize this ledger's reads with atomic control replacements.
+        with self._lock:
+            try:
+                value = json.loads(self.control_path.read_text(encoding="utf-8"))
+                return str(value.get("command", "run"))
+            except (OSError, json.JSONDecodeError):
+                return "run"
 
     def write_control(self, command: str) -> None:
-        temporary = self.control_path.with_suffix(".tmp")
-        temporary.write_text(json.dumps({"command": command, "updated_at": utc_now()}), encoding="utf-8")
-        temporary.replace(self.control_path)
+        with self._lock:
+            # Separate writers must never share a temporary pathname.
+            temporary = self.control_path.with_name(f".control-{uuid.uuid4().hex}.tmp")
+            try:
+                temporary.write_text(json.dumps({"command": command, "updated_at": utc_now()}), encoding="utf-8")
+                for attempt in range(6):
+                    try:
+                        temporary.replace(self.control_path)
+                        break
+                    except PermissionError as error:
+                        # A different process may still be reading the old file.
+                        # Preserve it and retry briefly; permanent errors surface.
+                        if getattr(error, "winerror", None) not in {5, 32} or attempt == 5:
+                            raise
+                        time.sleep(0.01 * (attempt + 1))
+            finally:
+                temporary.unlink(missing_ok=True)

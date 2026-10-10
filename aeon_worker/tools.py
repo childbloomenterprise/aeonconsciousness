@@ -384,19 +384,23 @@ class WorkspaceTools:
 
     def browser(self, operation: str, *, url: str = "", selector: str = "", value: str = "", effect: str = "browser_write", amount: float = 0.0, recipient: str = "", cases: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         if operation == "test_local":
+            case_help = (' Valid case: {"fills":[{"selector":"#bill","value":"100"},'
+                         '{"selector":"#tip","value":"15"}],"click":"#calculate","expected":"115"}.'
+                         ' Keep fills as objects, never flattened strings or null. Alternatively use'
+                         ' navigate_local, then separate fill actions, then click and inspect its returned text.')
             if effect != "browser_write" or not isinstance(cases, list) or not 1 <= len(cases) <= 12:
-                raise ValueError("test_local needs 1..12 cases and allows only local browser_write effects.")
+                raise ValueError("test_local needs 1..12 cases and allows only local browser_write effects." + case_help)
             normalized_cases = []
             for case in cases:
                 if not isinstance(case, dict) or not all(isinstance(case.get(key), str) for key in ("click", "expected")) or not case["expected"]:
-                    raise ValueError("Each test needs click and nonempty expected strings.")
-                fills = case.get("fills")
-                if fills is None:
+                    raise ValueError("Each test needs click and nonempty expected strings." + case_help)
+                if "fills" not in case:
                     if not all(isinstance(case.get(key), str) for key in ("selector", "value")):
-                        raise ValueError("Each test needs selector and value strings or a fills list.")
+                        raise ValueError("Each test needs selector and value strings or a fills list." + case_help)
                 else:
+                    fills = case["fills"]
                     if not isinstance(fills, list) or not 1 <= len(fills) <= 12:
-                        raise ValueError("fills needs 1..12 selector/value objects.")
+                        raise ValueError("fills needs 1..12 selector/value objects." + case_help)
                     parsed_fills = []
                     for item in fills:
                         if isinstance(item, str) and len(item) <= 512:
@@ -405,7 +409,7 @@ class WorkspaceTools:
                             except json.JSONDecodeError:
                                 pass
                         if not isinstance(item, dict) or not isinstance(item.get("selector"), str) or not isinstance(item.get("value"), str):
-                            raise ValueError("fills needs 1..12 selector/value objects.")
+                            raise ValueError("fills needs 1..12 selector/value objects." + case_help)
                         parsed_fills.append(item)
                     case = {**case, "fills": parsed_fills}
                 normalized_cases.append(case)

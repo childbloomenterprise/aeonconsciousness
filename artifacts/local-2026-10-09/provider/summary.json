@@ -1,0 +1,23 @@
+{
+  "root_cause": "Nested bounded arrays (12 cases x 12 fills) rejected by current Gemini constrained schema compiler; generic INVALID_ARGUMENT. Removing either maximum or lowering both to 3 isolated compatibility issue. Internal compiler expansion remains inferred, not directly observable.",
+  "fix": "Remove only fills.maxItems and preserve runtime 1..12 validation. Use args.anyOf containing 10 tool shapes and 6 browser operation shapes; generic all-optional args lost URL and produced unrelated sections in live probes.",
+  "focused_tests": {
+    "passed": 4,
+    "failed": 0
+  },
+  "final_live": {
+    "http_200": 3,
+    "exact_expected_action": 3,
+    "models": [
+      "gemini-3.5-flash-lite",
+      "gemini-3.1-flash-lite"
+    ],
+    "observed_tokens": 2896
+  },
+  "all_diagnostic_calls": 19,
+  "http_400_calls": 3,
+  "observed_diagnostic_tokens": 11500,
+  "qualification": "These diagnostic requests generated no browser/file effects. Queue/task resumption and actual website acceptance remain separate. Provider usage is reported tokens, not reconciled billing. No commit/push/deploy performed.",
+  "official_source": "https://ai.google.dev/gemini-api/docs/generate-content/structured-output?hl=en",
+  "source_observation": "Official docs support nested anyOf and typed arrays; warn large/deeply nested schemas may be rejected; recommend application validation."
+}

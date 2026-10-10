@@ -1,0 +1,19 @@
+{
+  "user": {
+    "framework": {
+      "note": "framework produced answer.md explaining blocked, not the user-understanding.md deliverable",
+      "words": 27,
+      "under_300": true,
+      "sections_present": false,
+      "bullets_ge3": false,
+      "no_http": true
+    },
+    "standalone": {
+      "words": 85,
+      "under_300": true,
+      "sections_present": true,
+      "bullets_ge3": true,
+      "no_http": true
+    }
+  }
+}

@@ -142,6 +142,7 @@ def verify_artifacts(
     task_type: str,
     sources: list[dict[str, Any]],
     *, inspection_cache: InspectionCache | None = None,
+    require_sources: bool = True,
 ) -> tuple[list[VerificationFinding], list[dict[str, Any]]]:
     findings: list[VerificationFinding] = []
     inspections: list[dict[str, Any]] = []
@@ -213,7 +214,7 @@ def verify_artifacts(
                     findings.append(VerificationFinding("error", relative, issue))
             except Exception as error:
                 findings.append(VerificationFinding("error", relative, f"Browser inspection unavailable: {type(error).__name__}: {error}"[:300]))
-        elif suffix == ".md" and task_type in {"research", "browser_file"}:
+        elif suffix == ".md" and task_type in {"research", "browser_file"} and require_sources:
             if not sources:
                 findings.append(VerificationFinding("error", relative, "Research result has no inspected source pages."))
             else:

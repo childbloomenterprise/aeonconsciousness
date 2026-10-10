@@ -1,0 +1,81 @@
+{
+  "tasks": {
+    "research-ux-best-practices": {
+      "framework": {
+        "status": "partial",
+        "reason": "model_token_budget",
+        "model_tokens": 17404,
+        "input_tokens": 15637,
+        "output_tokens": 1767,
+        "steps": 6,
+        "elapsed_s": 25.89,
+        "audit_valid": true,
+        "downloaded_files": [
+          "ux-checklist.md"
+        ]
+      },
+      "standalone": {
+        "status": "completed",
+        "total_tokens": 802,
+        "prompt_tokens": 188,
+        "completion_tokens": 614,
+        "elapsed_s": 2.95,
+        "files": [
+          "ux-checklist.md"
+        ]
+      }
+    },
+    "website-portfolio-prompt": {
+      "framework": {
+        "status": "partial",
+        "reason": "model_finished",
+        "model_tokens": 17149,
+        "input_tokens": 13568,
+        "output_tokens": 3581,
+        "steps": 6,
+        "elapsed_s": 69.52,
+        "audit_valid": true,
+        "downloaded_files": [
+          "index.html",
+          "site-0eb547304658-desktop.png",
+          "site-0eb547304658-mobile.png"
+        ]
+      },
+      "standalone": {
+        "status": "completed",
+        "total_tokens": 2197,
+        "prompt_tokens": 187,
+        "completion_tokens": 2010,
+        "elapsed_s": 5.09,
+        "files": [
+          "index.html"
+        ]
+      }
+    },
+    "understand-user-demand-letter": {
+      "framework": {
+        "status": "partial",
+        "reason": "model_token_budget",
+        "model_tokens": 9526,
+        "input_tokens": 8158,
+        "output_tokens": 1368,
+        "steps": 4,
+        "elapsed_s": 14.88,
+        "audit_valid": true,
+        "downloaded_files": [
+          "answer.md"
+        ]
+      },
+      "standalone": {
+        "status": "completed",
+        "total_tokens": 324,
+        "prompt_tokens": 180,
+        "completion_tokens": 144,
+        "elapsed_s": 1.46,
+        "files": [
+          "user-understanding.md"
+        ]
+      }
+    }
+  }
+}

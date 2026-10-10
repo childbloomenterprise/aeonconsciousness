@@ -19,6 +19,13 @@ const state = {
   jobs: [],
   view: "tasks",
   filter: "all",
+  local: false,
+  localPersistent: false,
+  currentJob: null,
+  detailSignature: "",
+  viewSignature: "",
+  refreshing: false,
+  connectionFailed: false,
 };
 const label = (s) => String(s).replaceAll("_", " "),
   date = (t) => (t ? new Date(t * 1000).toLocaleString() : "Not connected");
@@ -26,16 +33,31 @@ const badge = (s) => `<span class="pill ${esc(s)}">${esc(label(s))}</span>`;
 const authRole = () => state.dashboard?.role || "viewer",
   canWork = () => ["owner", "operator"].includes(authRole());
 async function call(path, method = "GET", data, extra = {}) {
-  const response = await fetch("/api" + path, {
-    method,
-    headers: {
-      ...(data === undefined ? {} : { "content-type": "application/json" }),
-      ...extra,
-    },
-    body: data === undefined ? undefined : JSON.stringify(data),
-    credentials: "same-origin",
-  });
-  const value = await response.json();
+  let response;
+  try {
+    response = await fetch("/api" + path, {
+      method,
+      headers: {
+        ...(data === undefined ? {} : { "content-type": "application/json" }),
+        ...extra,
+      },
+      body: data === undefined ? undefined : JSON.stringify(data),
+      credentials: "same-origin",
+      signal: AbortSignal.timeout(30000),
+    });
+  } catch {
+    throw new Error(
+      "Cannot reach AEON. Check the local server or network, then retry Refresh after the server returns.",
+    );
+  }
+  let value;
+  try {
+    value = await response.json();
+  } catch {
+    throw new Error(
+      "AEON returned an unreadable response. Retry or check server logs.",
+    );
+  }
   if (!response.ok)
     throw Object.assign(new Error(value.error || "Request failed."), {
       status: response.status,
@@ -48,6 +70,7 @@ function notice(message) {
   $("#notice").hidden = !message;
 }
 function modal(title, content) {
+  state.currentJob = null;
   $("#dialog-title").textContent = title;
   $("#dialog-body").innerHTML = content;
   $("#dialog").showModal();
@@ -70,30 +93,75 @@ function metric(title, value, note) {
   return `<div class="metric"><div class="metric-label">${esc(title)}</div><strong>${esc(value)}</strong><small>${esc(note)}</small></div>`;
 }
 async function refresh() {
-  if (!state.org) return;
-  const [d, j] = await Promise.all([
-    call(base() + "/dashboard"),
-    call(base() + "/jobs"),
-  ]);
-  state.dashboard = d;
-  state.jobs = j.jobs;
-  const total = (s) =>
-    d.stats
-      .filter((v) => s.includes(v.status))
-      .reduce((n, v) => n + v.count, 0);
-  $("#metrics").innerHTML =
-    metric("Queued", total(["queued"]), "Ready for a connected worker") +
-    metric("Running", total(["running"]), "Current worker leases") +
-    metric("Completed", total(["completed"]), "Runtime checks passed") +
-    metric(
-      "Needs attention",
-      total(["partial", "failed", "interrupted", "pending_approval"]),
-      "Review gaps, approvals, or recovery",
-    );
-  $("#role").textContent = d.role;
-  $("#create").disabled = !canWork();
-  $("#approval-count").textContent = total(["pending_approval"]) || "";
-  await render();
+  if (!state.org || state.refreshing) return;
+  state.refreshing = true;
+  try {
+    const [d, j] = await Promise.all([
+      call(base() + "/dashboard"),
+      call(base() + "/jobs"),
+    ]);
+    state.dashboard = d;
+    state.jobs = j.jobs;
+    const total = (s) =>
+      d.stats
+        .filter((v) => s.includes(v.status))
+        .reduce((n, v) => n + v.count, 0);
+    $("#metrics").innerHTML =
+      metric("Queued", total(["queued"]), "Ready for a connected worker") +
+      metric("Running", total(["running"]), "Current worker leases") +
+      metric("Completed", total(["completed"]), "Runtime checks passed") +
+      metric(
+        "Needs attention",
+        total(["partial", "failed", "interrupted", "pending_approval"]),
+        "Review gaps, approvals, or recovery",
+      );
+    $("#role").textContent = d.role;
+    $("#create").disabled = !canWork();
+    $("#approval-count").textContent = total(["pending_approval"]) || "";
+    if (state.connectionFailed) notice("");
+    state.connectionFailed = false;
+    $("#connection-status").textContent =
+      `Connected · updated ${new Date().toLocaleTimeString()}`;
+    if (state.local) {
+      const online = d.workers.some(
+        (w) =>
+          !w.revoked &&
+          w.heartbeat_at &&
+          Date.now() / 1000 - w.heartbeat_at < 120,
+      );
+      $("#runtime-status").hidden = false;
+      const storage = state.localPersistent
+        ? "Tasks and artifacts saved on this computer."
+        : "Ephemeral preview: tasks and artifacts disappear on restart.";
+      $("#runtime-status").textContent = online
+        ? `Local workspace · worker connected · ${storage} Trusted local execution uses your machine permissions.`
+        : `Local workspace · worker offline · start or restart with deployment/local-aeon.ps1. ${storage}`;
+    }
+    const signature = JSON.stringify([
+      state.org,
+      state.view,
+      state.filter,
+      d,
+      j,
+    ]);
+    if (signature !== state.viewSignature) {
+      await render();
+      state.viewSignature = signature;
+    }
+    if (state.currentJob && $("#dialog").open)
+      await openTask(state.currentJob, true);
+  } catch (e) {
+    state.connectionFailed = true;
+    $("#create").disabled = true;
+    if (state.local)
+      $("#runtime-status").textContent =
+        "Local server unavailable · task and worker status below reflect the last received data. Start deployment/local-aeon.ps1, then Refresh.";
+    $("#connection-status").textContent =
+      "Disconnected · showing last received data. Retry Refresh when server returns.";
+    throw e;
+  } finally {
+    state.refreshing = false;
+  }
 }
 async function render() {
   const titles = {
@@ -109,6 +177,14 @@ async function render() {
     .forEach((b) =>
       b.classList.toggle("active", b.dataset.view === state.view),
     );
+  document
+    .querySelectorAll("[data-view]")
+    .forEach((b) =>
+      b.setAttribute(
+        "aria-current",
+        b.dataset.view === state.view ? "page" : "false",
+      ),
+    );
   if (state.view === "tasks" || state.view === "approvals") {
     const jobs = state.jobs.filter((j) =>
       state.view === "approvals"
@@ -122,11 +198,16 @@ async function render() {
         : "";
     $("#view").innerHTML =
       quota +
+      (filter ? `<div class="queue-controls">${filter}</div>` : "") +
       (jobs.length
-        ? `<div class="panel"><div class="panel-top"><h2>${state.view === "approvals" ? "External actions awaiting review" : "Recent tasks"}</h2>${filter}</div><table><thead><tr><th>Task</th><th>Status</th><th>Type</th><th>Created</th></tr></thead><tbody>${jobs.map((j) => `<tr data-job="${j.id}" tabindex="0" role="button" aria-label="Open ${esc(j.title)}"><td><strong>${esc(j.title)}</strong><small>${j.id.slice(0, 16)} · ${Number(j.used_tokens || j.progress?.tokens || 0).toLocaleString()} tokens</small></td><td>${badge(j.status)}</td><td>${esc(label(j.kind))}</td><td>${esc(date(j.created_at))}</td></tr>`).join("")}</tbody></table></div>`
-        : `<div class="empty"><h2>${state.view === "approvals" ? "No approvals waiting" : state.filter === "all" ? "Your work queue starts here" : "No matching tasks"}</h2><p>${state.view === "approvals" ? "Tasks with external effects appear here before a worker can act." : "Give AEON an outcome, a deadline, and acceptance criteria. Its worker will return artifacts and evidence."}</p>${canWork() ? '<button class="primary" id="empty-create">Create a task</button>' : ""}</div>`);
+        ? `<div class="panel"><div class="panel-top"><h2>${state.view === "approvals" ? "External actions awaiting review" : "Recent tasks"}</h2></div><table><thead><tr><th>Task</th><th>Status</th><th>Type</th><th>Created</th></tr></thead><tbody>${jobs.map((j) => `<tr data-job="${j.id}" tabindex="0" role="button" aria-label="Open ${esc(j.title)}"><td><strong>${esc(j.title)}</strong><small>${j.id.slice(0, 16)} · ${Number(j.used_tokens || j.progress?.tokens || 0).toLocaleString()} tokens</small></td><td>${badge(j.status)}</td><td>${esc(label(j.kind))}</td><td>${esc(date(j.created_at))}</td></tr>`).join("")}</tbody></table></div>`
+        : `<div class="empty"><h2>${state.view === "approvals" ? "No approvals waiting" : state.filter === "all" ? "Your work queue starts here" : "No matching tasks"}</h2><p>${state.view === "approvals" ? "Tasks with external effects appear here before a worker can act." : "Give AEON an outcome, a deadline, and acceptance criteria. Its worker will return artifacts and evidence."}</p>${state.view === "tasks" && state.filter !== "all" ? '<button class="secondary" id="reset-filter">Show all tasks</button>' : canWork() && state.view === "tasks" ? '<button class="primary" id="empty-create">Create a task</button>' : ""}</div>`);
     $("#filter")?.addEventListener("change", (e) => {
       state.filter = e.target.value;
+      render();
+    });
+    $("#reset-filter")?.addEventListener("click", () => {
+      state.filter = "all";
       render();
     });
     $("#empty-create")?.addEventListener("click", createTask);
@@ -162,7 +243,7 @@ async function render() {
   } else if (state.view === "members") {
     const data = await call(base() + "/members");
     $("#view").innerHTML =
-      `<div class="panel"><div class="panel-top"><h2>Workspace members</h2>${authRole() === "owner" ? '<button class="primary" id="invite">Create invitation</button>' : ""}</div><table><thead><tr><th>Member</th><th>Role</th><th>Joined</th></tr></thead><tbody>${data.members.map((m) => `<tr><td>${esc(m.email)}</td><td>${badge(m.role)}</td><td>${esc(date(m.created_at))}</td></tr>`).join("")}</tbody></table></div><p class="hint">Application membership and hosting access both apply. This deployment currently stays private to its owner; invitations do not change that access policy.</p><div class="cards"><article class="card"><h2>Organization</h2><p>${esc(state.dashboard.organization.name)}</p><div class="actions"><button class="secondary" id="new-org">New organization</button>${authRole() === "owner" ? '<button class="secondary" id="export">Export records</button>' : ""}</div></article></div>`;
+      `<div class="panel"><div class="panel-top"><h2>Workspace members</h2>${authRole() === "owner" && !state.local ? '<button class="primary" id="invite">Create invitation</button>' : ""}</div><table><thead><tr><th>Member</th><th>Role</th><th>Joined</th></tr></thead><tbody>${data.members.map((m) => `<tr><td>${esc(m.email)}</td><td>${badge(m.role)}</td><td>${esc(date(m.created_at))}</td></tr>`).join("")}</tbody></table></div><p class="hint">${state.local ? "Local mode uses one development owner on this computer. Invitations and ChatGPT sign-in apply only to a hosted deployment." : "Application membership and hosting access both apply. This deployment stays private to its owner; invitations do not change that access policy."}</p><div class="cards"><article class="card"><h2>Organization</h2><p>${esc(state.dashboard.organization.name)}</p><div class="actions"><button class="secondary" id="new-org">New organization</button>${authRole() === "owner" ? '<button class="secondary" id="export">Export records</button>' : ""}</div></article></div>`;
     $("#invite")?.addEventListener("click", invite);
     $("#new-org").onclick = newOrganization;
     $("#export")?.addEventListener("click", async () => {
@@ -179,9 +260,10 @@ async function render() {
   }
 }
 function createTask() {
+  let pendingSubmission = null;
   modal(
     "Delegate a task",
-    `<form id="task-form"><div class="field"><label for="title">Task name</label><input id="title" name="title" required minlength="3" maxlength="120" placeholder="Research supplier options"></div><div class="field"><label for="brief">Outcome and acceptance criteria</label><textarea id="brief" name="brief" required minlength="10" maxlength="12000" rows="6" placeholder="Describe the usable result you need, required sources, audience, and how you will judge success."></textarea></div><div class="columns"><div class="field"><label for="kind">Work type</label><select id="kind" name="kind">${["research", "website", "code", "browser_file", "general"].map((v) => `<option value="${v}">${esc(label(v))}</option>`).join("")}</select></div><div class="field"><label for="tokens">Token ceiling</label><input id="tokens" name="max_tokens" type="number" min="1000" max="50000" value="20000" required></div><div class="field"><label for="deadline">Deadline, minutes</label><input id="deadline" name="deadline_minutes" type="number" min="1" max="90" value="30" required></div></div><details><summary>External action permissions</summary><p class="hint">Default: public reading and task files only. External changes need scoped permission and approval. Spending disabled in this deployment.</p><div class="field"><label for="grant">Grant JSON</label><textarea id="grant" name="grant" rows="5">{"external_actions": [], "browser_write_domains": [], "recipients": [], "max_spend": 0, "currency": "USD"}</textarea></div></details><p class="hint">Subgoals and routine choices come from your brief. Review the finished artifact before using it for business decisions.</p><div id="form-error" class="error" role="alert"></div><div class="form-actions"><button class="primary" type="submit">Queue task</button></div></form>`,
+    `<form id="task-form"><div class="field"><label for="title">Task name</label><input id="title" name="title" required minlength="3" maxlength="120" placeholder="Research supplier options"></div><div class="field"><label for="brief">Outcome and acceptance criteria</label><textarea id="brief" name="brief" required minlength="10" maxlength="12000" rows="6" placeholder="Describe the usable result you need, required sources, audience, and how you will judge success."></textarea></div><div class="columns"><div class="field"><label for="kind">Work type</label><select id="kind" name="kind">${["research", "website", "code", "browser_file", "general"].map((v) => `<option value="${v}">${esc(label(v))}</option>`).join("")}</select></div><div class="field"><label for="tokens">Token ceiling</label><input id="tokens" name="max_tokens" type="number" min="1000" max="50000" value="30000" required><small>Includes planning and final review. Complex work may need more; maximum 50,000.</small></div><div class="field"><label for="deadline">Deadline, minutes</label><input id="deadline" name="deadline_minutes" type="number" min="1" max="90" value="30" required></div></div><details><summary>External action permissions</summary><p class="hint">Default: public reading and task files only. External changes need scoped permission and approval. Spending disabled in this deployment.</p><div class="field"><label for="grant">Grant JSON</label><textarea id="grant" name="grant" rows="5">{"external_actions": [], "browser_write_domains": [], "recipients": [], "max_spend": 0, "currency": "USD"}</textarea></div></details><p class="hint">Subgoals and routine choices come from your brief. Review the finished artifact before using it for business decisions.</p><div id="form-error" class="error" role="alert"></div><div class="form-actions"><button class="primary" type="submit">Queue task</button></div></form>`,
   );
   $("#task-form").onsubmit = async (e) => {
     e.preventDefault();
@@ -189,18 +271,23 @@ function createTask() {
       button = e.target.querySelector("button[type=submit]");
     button.disabled = true;
     try {
+      const payload = {
+        title: form.get("title"),
+        brief: form.get("brief"),
+        kind: form.get("kind"),
+        max_tokens: Number(form.get("max_tokens")),
+        deadline_minutes: Number(form.get("deadline_minutes")),
+        grant: JSON.parse(form.get("grant")),
+      };
+      const signature = JSON.stringify([state.org, payload]);
+      if (pendingSubmission?.signature !== signature) {
+        pendingSubmission = { signature, key: crypto.randomUUID() };
+      }
       await call(
         base() + "/jobs",
         "POST",
-        {
-          title: form.get("title"),
-          brief: form.get("brief"),
-          kind: form.get("kind"),
-          max_tokens: Number(form.get("max_tokens")),
-          deadline_minutes: Number(form.get("deadline_minutes")),
-          grant: JSON.parse(form.get("grant")),
-        },
-        { "idempotency-key": crypto.randomUUID() },
+        payload,
+        { "idempotency-key": pendingSubmission.key },
       );
       $("#dialog").close();
       state.view = "tasks";
@@ -208,18 +295,42 @@ function createTask() {
       notice("Task saved. It will start when a matching worker claims it.");
       await refresh();
     } catch (err) {
-      formError(err);
+      formError(
+        err instanceof SyntaxError
+          ? new Error(
+              "Grant JSON is invalid. Fix the JSON or restore the default empty permission list.",
+            )
+          : err,
+      );
       button.disabled = false;
     }
   };
 }
-async function openTask(jobId) {
+async function openTask(jobId, live = false) {
   try {
     const { job: j, artifacts } = await call(base() + `/jobs/${jobId}`);
-    modal(
-      j.title,
-      `${badge(j.status)}<div class="section-heading">Assignment</div><div class="detail-text">${esc(j.brief)}</div><div class="section-heading">Limits & execution</div><p class="hint">${j.max_tokens.toLocaleString()} token ceiling · ${j.deadline_minutes} minutes · ${j.attempts} attempt(s)<br>Recorded usage: ${Number(j.used_tokens || j.progress?.tokens || 0).toLocaleString()} tokens · ${esc(j.progress?.phase || "Awaiting worker")}</p>${j.grant.external_actions.length ? `<details><summary>External grant</summary><pre>${esc(JSON.stringify(j.grant, null, 2))}</pre></details>` : ""}<div class="section-heading">Artifacts</div>${artifacts.map((a) => `<a class="artifact" href="/api${base()}/artifacts/${a.id}" download><span>${esc(a.path)}</span><small>${(a.size / 1024).toFixed(1)} KB · download</small></a>`).join("") || '<p class="hint">No artifact uploaded yet.</p>'}${j.result ? `<div class="section-heading">Verified outcome & remaining gaps</div><p class="hint">Runtime audit: ${j.result.audit_valid === true ? "valid" : "not verified"} · ${esc(j.result.reason || j.result.status)}</p><div class="detail-text">${esc((j.result.unresolved_gaps || []).join("\n") || "No unresolved gap reported by runtime.")}</div><details><summary>Decisions and result evidence</summary><pre>${esc(JSON.stringify(j.result, null, 2))}</pre></details>` : ""}<div id="form-error" class="error" role="alert"></div><div class="form-actions">${j.status === "pending_approval" && ["owner", "reviewer"].includes(authRole()) ? '<button class="primary" id="approve">Review approval</button>' : ""}${["interrupted", "partial"].includes(j.status) && canWork() ? '<button class="secondary" id="resume">Resume with limits</button>' : ""}${["queued", "pending_approval", "running", "interrupted"].includes(j.status) && canWork() ? '<button class="danger" id="cancel-task">Cancel task</button>' : ""}</div>`,
-    );
+    if (live && (!$("#dialog").open || state.currentJob !== jobId)) return;
+    const signature = JSON.stringify([j, artifacts]);
+    if (live && signature === state.detailSignature) return;
+    const content = `${badge(j.status)}<div class="section-heading">Assignment</div><div class="detail-text">${esc(j.brief)}</div><div class="section-heading">Limits & execution</div><p class="hint">${j.max_tokens.toLocaleString()} token ceiling · ${j.deadline_minutes} minutes · ${j.attempts} attempt(s)<br>Recorded usage: ${Number(j.used_tokens || j.progress?.tokens || 0).toLocaleString()} tokens · ${esc(j.progress?.phase || "Awaiting worker")}</p>${j.grant.external_actions.length ? `<details><summary>External grant</summary><pre>${esc(JSON.stringify(j.grant, null, 2))}</pre></details>` : ""}<div class="section-heading">Artifacts</div>${artifacts.map((a) => `<a class="artifact" href="/api${base()}/artifacts/${a.id}" download><span>${esc(a.path)}</span><small>${(a.size / 1024).toFixed(1)} KB · download</small></a>`).join("") || '<p class="hint">No artifact uploaded yet.</p>'}${j.result ? `<div class="section-heading">Verified outcome & remaining gaps</div><p class="hint">Runtime audit: ${j.result.audit_valid === true ? "valid" : "not verified"} · ${esc(j.result.reason || j.result.status)}</p><div class="detail-text">${esc((j.result.unresolved_gaps || []).join("\n") || "No unresolved gap reported by runtime.")}</div><details><summary>Decisions and result evidence</summary><pre>${esc(JSON.stringify(j.result, null, 2))}</pre></details>` : ""}<div id="form-error" class="error" role="alert"></div><p class="hint">Status updates automatically while this panel stays open.</p><div class="form-actions"><button class="secondary" id="refresh-task">Refresh task</button>${j.status === "pending_approval" && ["owner", "reviewer"].includes(authRole()) ? '<button class="primary" id="approve">Review approval</button>' : ""}${["interrupted", "partial"].includes(j.status) && canWork() ? '<button class="secondary" id="resume">Resume with limits</button>' : ""}${["queued", "pending_approval", "running", "interrupted"].includes(j.status) && canWork() ? '<button class="danger" id="cancel-task">Cancel task</button>' : ""}</div>`;
+    if (live) {
+      const body = $("#dialog-body"),
+        dialog = $("#dialog");
+      const scroll = dialog.scrollTop,
+        focus = document.activeElement?.id;
+      const expanded = [...body.querySelectorAll("details")].map((d) => d.open);
+      body.innerHTML = content;
+      body
+        .querySelectorAll("details")
+        .forEach((d, i) => (d.open = expanded[i] || false));
+      if (focus) document.getElementById(focus)?.focus({ preventScroll: true });
+      dialog.scrollTop = scroll;
+    } else {
+      modal(j.title, content);
+    }
+    state.currentJob = jobId;
+    state.detailSignature = signature;
+    $("#refresh-task")?.addEventListener("click", () => openTask(jobId, true));
     $("#cancel-task")?.addEventListener("click", async () => {
       try {
         await call(base() + `/jobs/${j.id}/cancel`, "POST", {});
@@ -239,6 +350,7 @@ async function openTask(jobId) {
   }
 }
 function approve(j) {
+  state.currentJob = null;
   $("#dialog-body").innerHTML =
     `<form id="approve-form"><p class="hint">Approve only the named domains, recipients, and actions. This approval becomes part of audit history.</p><pre>${esc(JSON.stringify(j.grant, null, 2))}</pre><div class="field"><label for="reason">Approval reason</label><textarea id="reason" minlength="10" maxlength="500" required></textarea></div>${authRole() === "owner" ? '<label class="hint"><input id="override" type="checkbox"> Explicit owner override when approving my own task</label>' : ""}<div id="form-error" class="error" role="alert"></div><div class="form-actions"><button class="primary">Approve scope</button></div></form>`;
   $("#approve-form").onsubmit = async (e) => {
@@ -256,6 +368,7 @@ function approve(j) {
   };
 }
 function resume(j) {
+  state.currentJob = null;
   $("#dialog-body").innerHTML =
     `<form id="resume-form"><p class="hint">Resume on the original worker with its saved checkpoint. External effects may already have happened; inspect evidence before retrying.</p><div class="columns"><div class="field"><label for="extra-tokens">Additional tokens</label><input id="extra-tokens" type="number" min="0" max="10000" value="${j.status === "partial" ? 5000 : 0}"></div><div class="field"><label for="extra-steps">Additional steps</label><input id="extra-steps" type="number" min="0" max="20" value="5"></div><div class="field"><label for="extra-minutes">Additional minutes</label><input id="extra-minutes" type="number" min="0" max="30" value="10"></div></div><div id="form-error" class="error" role="alert"></div><div class="form-actions"><button class="primary">Request resume</button></div></form>`;
   $("#resume-form").onsubmit = async (e) => {
@@ -343,6 +456,19 @@ async function initialize(selected) {
       await call("/invitations/accept", "POST", { token: inviteKey });
       history.replaceState(null, "", "/");
     }
+    if (["127.0.0.1", "localhost"].includes(location.hostname)) {
+      try {
+        const runtime = await call("/local/runtime");
+        state.local = runtime.mode === "local";
+        state.localPersistent = runtime.persistence === true;
+      } catch {
+        state.local = false;
+      }
+      if (state.local) {
+        $("#deployment-mode").textContent = "Local workspace";
+        $("#signout").hidden = true;
+      }
+    }
     state.session = await call("/session");
     state.org = selected || state.session.organizations[0].id;
     $("#org").innerHTML = state.session.organizations
@@ -360,6 +486,9 @@ async function initialize(selected) {
   }
 }
 $("#close").onclick = () => $("#dialog").close();
+$("#dialog").addEventListener("close", () => {
+  state.currentJob = null;
+});
 $("#create").onclick = createTask;
 $("#refresh").onclick = () => refresh().catch((e) => notice(e.message));
 $("#org").onchange = (e) => {
@@ -376,6 +505,6 @@ document.querySelectorAll("[data-view]").forEach(
 );
 initialize();
 setInterval(() => {
-  if (state.org && !$("#dialog").open)
+  if (state.org && (!$("#dialog").open || state.currentJob))
     refresh().catch((e) => notice(e.message));
-}, 10000);
+}, 5000);

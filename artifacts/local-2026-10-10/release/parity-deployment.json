@@ -1,0 +1,11 @@
+{
+  "wheel_sha256": "07fe6a84a874e709b7464b938deed4eb673ec90c9293b9d8c6c6377915c8da7d",
+  "source_installed_wheel_python_files_equal": 60,
+  "site_source_commit": "92b5fed2b945061cc95683f0a5e3f129447ef71f",
+  "deployment_id": "appgdep_6aca2e0b2460819187114a7017e25801",
+  "site_version": 2,
+  "deployment_status": "succeeded",
+  "url": "https://aeon-enterprise.childbloomenterprise.chatgpt.site",
+  "owner_private": true,
+  "hosted_new_model_job_tested": false
+}

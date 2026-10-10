@@ -73,6 +73,204 @@ class WeightedProvider(ScriptedProvider):
 
 
 class WorkerTests(unittest.TestCase):
+    def test_no_research_brief_overrides_misclassified_research_plan_and_old_sources(self):
+        for old_sources in (False, True):
+            with self.subTest(old_sources=old_sources), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                provider = ScriptedProvider(PLAN,
+                    action('write_file', path='answer.md', content='# Facts vs Inferences\nOnly provided email facts; unknown cause.'),
+                    {'issues': []})
+                runner = TaskRunner(TaskStore(root / 'tasks'), provider)
+                original_plan = runner._plan
+                def plan(spec, state, ledger):
+                    original_plan(spec, state, ledger)
+                    if old_sources:
+                        state['sources'] = [{'url': 'https://example.com', 'excerpt': 'Unrelated old source'}]
+                with patch.object(runner, '_plan', side_effect=plan):
+                    result = runner.start(TaskSpec('Ground everything in the provided email. No web browsing. No citations.', str(root / 'workspace')))
+                self.assertEqual(result['status'], 'completed', result)
+                self.assertEqual(result['unresolved_gaps'], [])
+                self.assertTrue((root / 'workspace' / 'answer.md').is_file())
+
+    def test_forbidden_public_read_never_reaches_network_and_local_write_recovers(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            provider = ScriptedProvider(PLAN,
+                action('read_url', url='https://example.com'),
+                action('write_file', path='answer.md', content='Facts from supplied context; no external evidence.'),
+                action('finish'), {'issues': []})
+            with patch.object(WorkspaceTools, 'read_url') as network:
+                result = TaskRunner(TaskStore(root / 'tasks'), provider).start(TaskSpec(
+                    'Analyze supplied email. No research needed. No web browsing.', str(root / 'workspace')))
+            network.assert_not_called()
+            self.assertEqual(result['status'], 'completed', result)
+            self.assertEqual(result['sources'], [])
+
+    def test_real_research_still_requires_inspected_citations(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            provider = ScriptedProvider(PLAN,
+                action('write_file', path='answer.md', content='Unsupported source-free report.'),
+                action('finish'), {'issues': []})
+            result = TaskRunner(TaskStore(root / 'tasks'), provider).start(TaskSpec(
+                'Research public sources and cite inspected evidence.', str(root / 'workspace'), max_revisions=0))
+            self.assertNotEqual(result['status'], 'completed')
+            self.assertFalse((root / 'workspace' / 'answer.md').exists())
+
+    def test_explicit_local_assertion_brief_cannot_complete_without_execution_receipt(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            provider = ScriptedProvider(
+                dict(PLAN, task_type='browser_file', deliverables=['source-summary.json'],
+                     hard_requirements=['Run a real bounded local assertion check recording only observed checks']),
+                action('read_url', url='https://example.com/about'),
+                action('write_file', path='source-summary.json', content='{"claims":["one","two","three"]}'),
+                {'issues': []},
+            )
+            with patch.object(WorkspaceTools, 'read_url', return_value={'url': 'https://example.com/about', 'content': 'one two three'}):
+                result = TaskRunner(TaskStore(root / 'tasks'), provider).start(TaskSpec(
+                    'Produce source-summary.json. Run a real bounded local assertion check.',
+                    str(root / 'workspace'), max_revisions=0))
+            self.assertEqual(result['status'], 'partial', result)
+            self.assertEqual(result['command_checks'], [])
+            self.assertTrue(any('local verification command' in gap for gap in result['unresolved_gaps']), result)
+
+    def test_hard_requirement_local_assertions_repaired_with_real_current_script_receipt(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            received = []
+            class CapturingProvider(ScriptedProvider):
+                def complete(self, system, payload):
+                    received.append(json.loads(json.dumps(payload)))
+                    return super().complete(system, payload)
+            provider = CapturingProvider(
+                dict(PLAN, task_type='browser_file', deliverables=['source-summary.json'],
+                     hard_requirements=['Run a real bounded local assertion check recording only observed checks']),
+                action('read_url', url='https://example.com/about'),
+                action('write_file', path='source-summary.json', content='{"claims":["one","two","three"]}'),
+                action('write_file', path='verify.py', content="import json\nfrom pathlib import Path\nassert len(json.loads(Path('source-summary.json').read_text())['claims']) == 3\n"),
+                action('run_check', check='python_script', path='verify.py'),
+                action('finish'), {'issues': []},
+            )
+            with patch.object(WorkspaceTools, 'read_url', return_value={'url': 'https://example.com/about', 'content': 'one two three'}):
+                result = TaskRunner(TaskStore(root / 'tasks'), provider).start(TaskSpec(
+                    'Produce source-summary.json.', str(root / 'workspace')))
+            self.assertEqual(result['status'], 'completed', result)
+            self.assertTrue(any('local verification command' in item for item in received[3]['verification_feedback']))
+            self.assertEqual(len(result['command_checks']), 1)
+            self.assertEqual(result['command_checks'][0]['check'], 'python_script')
+            self.assertEqual(result['command_checks'][0]['returncode'], 0)
+            self.assertTrue(result['command_checks'][0]['passed'])
+
+    def test_local_assertion_detection_preserves_explanations_and_plain_document_tasks(self):
+        positive = (
+            'Run a real bounded local assertion check.', 'Execute local assertions.',
+            'Validate fields and run a local verification script.',
+        )
+        negative = (
+            'Explain how to run a local assertion check.', 'Do not run local assertions; write a guide.',
+            'Summarize an inspected source in a document.',
+        )
+        for brief in positive:
+            with self.subTest(brief=brief):
+                self.assertTrue(TaskSpec(brief, '.').require_local_check)
+        for brief in negative:
+            with self.subTest(brief=brief):
+                self.assertFalse(TaskSpec(brief, '.').require_local_check)
+
+    def test_failed_negative_browser_case_guides_targeted_repair_and_current_retest(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            observed_error = 'Please enter a valid non-negative bill amount.'
+            required_error = 'Please enter a valid non-negative amount'
+            html = '''<!doctype html><html lang="en"><head><title>Tip calculator</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
+<label for="amount">Bill amount</label><input id="amount"><label for="tip">Tip</label><input id="tip">
+<button id="calculate">Calculate</button><output id="out"></output>
+<script>document.getElementById('calculate').onclick=() => {
+const bill=Number(document.getElementById('amount').value),tip=Number(document.getElementById('tip').value);
+document.getElementById('out').textContent=bill<0 ? 'Please enter a valid non-negative bill amount.' : (bill*tip/100).toFixed(2);
+};</script></body></html>'''
+            cases = [
+                {'fills': [{'selector': '#amount', 'value': '100'}, {'selector': '#tip', 'value': '15'}],
+                 'click': '#calculate', 'expected': '15.00'},
+                {'fills': [{'selector': '#amount', 'value': '0'}, {'selector': '#tip', 'value': '20'}],
+                 'click': '#calculate', 'expected': '0.00'},
+                {'fills': [{'selector': '#amount', 'value': '-1'}, {'selector': '#tip', 'value': '15'}],
+                 'click': '#calculate', 'expected': required_error},
+            ]
+            received = []
+            class CapturingProvider(ScriptedProvider):
+                def complete(self, system, payload):
+                    received.append(json.loads(json.dumps(payload)))
+                    return super().complete(system, payload)
+            provider = CapturingProvider(
+                dict(PLAN, task_type='code', deliverables=['index.html']),
+                action('write_file', path='index.html', content=html),
+                action('browser', operation='test_local', url='index.html', cases=cases),
+                action('replace_text', path='index.html', old=observed_error, new=required_error),
+                action('browser', operation='test_local', url='index.html', cases=cases),
+                {'issues': []},
+            )
+            runner = TaskRunner(TaskStore(root / 'tasks'), provider)
+            result = runner.start(TaskSpec('Build an offline tip calculator. Test normal, zero and negative bill inputs. '
+                                          f'Negative bills must display exactly: {required_error}',
+                                          str(root / 'workspace')))
+            self.assertEqual(result['status'], 'completed', result)
+            # Input and actual output of the failed case must guide the next
+            # action; passing sibling cases must not hide its failure.
+            repair_decision = received[3]
+            feedback = json.dumps(repair_decision['verification_feedback'])
+            self.assertIn('#amount', feedback)
+            self.assertIn('-1', feedback)
+            self.assertIn(observed_error, feedback)
+            self.assertIn(required_error, feedback)
+            failed_check = repair_decision['recent_results'][-1]['result']['checks'][-1]
+            self.assertFalse(failed_check['passed'])
+            self.assertEqual(failed_check['fills'], cases[-1]['fills'])
+            self.assertIn(observed_error, failed_check['observed_text'])
+            retest_decision = received[4]
+            edit = next(item for item in retest_decision['recent_results'] if item['tool'] == 'replace_text')
+            self.assertIn(observed_error, json.dumps(edit['args'].get('old')))
+            self.assertIn(required_error, json.dumps(edit['args'].get('new')))
+            current_checks = result['local_interaction_checks'][-3:]
+            self.assertEqual(len(current_checks), 3)
+            self.assertTrue(all(check['passed'] for check in current_checks), current_checks)
+            self.assertIn(required_error, current_checks[-1]['observed_text'])
+            self.assertEqual(provider.responses, [])
+
+    def test_targeted_edit_history_keeps_excerpts_without_resending_whole_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            old = '"status":"before"'
+            new = '"status":"corrected"'
+            padding = 'source-content-not-needed-for-next-decision-' * 100
+            body = '{' + old + ',"padding":' + json.dumps(padding) + '}'
+            received = []
+            class CapturingProvider(ScriptedProvider):
+                def complete(self, system, payload):
+                    received.append(json.loads(json.dumps(payload)))
+                    return super().complete(system, payload)
+            provider = CapturingProvider(
+                dict(PLAN, task_type='general', deliverables=['answer.json']),
+                action('write_file', path='answer.json', content=body),
+                action('replace_text', path='answer.json', old=old, new=new),
+                action('finish'), {'issues': []},
+            )
+            runner = TaskRunner(TaskStore(root / 'tasks'), provider)
+            result = runner.start(TaskSpec('Produce a JSON artifact and make a focused status correction.', str(root / 'workspace')))
+            self.assertEqual(result['status'], 'completed', result)
+            context = received[3]['recent_results']
+            edited = next(item for item in context if item['tool'] == 'replace_text')
+            self.assertIn(old, str(edited['args'].get('old')))
+            self.assertIn(new, str(edited['args'].get('new')))
+            self.assertNotIn(padding, json.dumps(context))
+            history = runner.store.load(result['task_id'])['history']
+            audit_edit = next(item for item in history if item['tool'] == 'replace_text')
+            self.assertIn(old, str(audit_edit['args'].get('old')))
+            self.assertIn(new, str(audit_edit['args'].get('new')))
+            self.assertEqual(json.loads((root / 'workspace' / 'answer.json').read_text(encoding='utf-8'))['status'], 'corrected')
+
     def test_benchmark_refuses_changed_source_snapshot(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -811,11 +1009,18 @@ class WorkerTests(unittest.TestCase):
                 action("write_file", path="index.html", content=good),
                 {"issues": []},
             )
-            result = TaskRunner(TaskStore(root / "tasks"), provider).start(
-                TaskSpec("Build a responsive page.", str(root / "workspace"))
-            )
+            runner = TaskRunner(TaskStore(root / "tasks"), provider)
+            result = runner.start(TaskSpec("Build a responsive page.", str(root / "workspace")))
             self.assertEqual(result["status"], "completed", result)
-            self.assertGreaterEqual(result["revisions"], 1)
+            history = runner.store.load(result["task_id"])["history"]
+            self.assertGreaterEqual(result["revisions"], 1, {"result": result, "history": history})
+            inspected = [item for item in history if item.get("tool") == "inspect_site"]
+            self.assertEqual(len(inspected), 1, {"result": result, "history": history})
+            self.assertEqual(inspected[0]["result"].get("issues"),
+                             ["desktop: horizontal overflow", "mobile: horizontal overflow"],
+                             {"result": result, "history": history})
+            self.assertTrue(result["inspections"], result)
+            self.assertTrue(all(not item["issues"] for item in result["inspections"]), result)
             self.assertEqual(result["findings"], [])
 
     def test_failed_local_check_can_be_repaired(self):

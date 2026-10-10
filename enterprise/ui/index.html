@@ -32,9 +32,10 @@
         ><button data-view="audit" class="nav">Audit history</button>
       </nav>
       <div class="sidebar-footer">
-        <span class="dot"></span> Private deployment
+        <span class="dot"></span>
+        <span id="deployment-mode">Private deployment</span>
         <div id="account">Checking account…</div>
-        <a href="/signout-with-chatgpt?return_to=/">Sign out</a>
+        <a id="signout" href="/signout-with-chatgpt?return_to=/">Sign out</a>
       </div>
     </aside>
     <main id="content">
@@ -49,6 +50,13 @@
           ><button id="create" class="primary" disabled>+ New task</button>
         </div>
       </header>
+      <div
+        id="runtime-status"
+        class="runtime-status"
+        role="status"
+        hidden
+      ></div>
+      <div id="connection-status" class="hint" role="status"></div>
       <div id="notice" role="status" aria-live="polite" hidden></div>
       <section
         id="metrics"
@@ -66,7 +74,7 @@
         completed task still needs your business acceptance.
       </footer>
     </main>
-    <dialog id="dialog">
+    <dialog id="dialog" aria-labelledby="dialog-title">
       <div class="modal-head">
         <h2 id="dialog-title">New task</h2>
         <button id="close" class="icon-button" aria-label="Close dialog">

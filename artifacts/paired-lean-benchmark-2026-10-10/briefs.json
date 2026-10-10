@@ -1,0 +1,66 @@
+{
+  "created": "2026-10-10",
+  "purpose": "Paired live-model benchmark: framework arm (AEON worker) vs standalone arm (same model, raw prompt loop). Lean prompts to minimize tokens.",
+  "common_model_policy": "Both arms use the SAME model route (gemini-3.5-flash-lite via stored enterprise provider credential). Temperature 0 where supported.",
+  "tasks": [
+    {
+      "id": "research-ux-best-practices",
+      "kind": "research",
+      "title": "Lean research: homepage UX checklist",
+      "brief": "Research homepage UX best practices using only inspected official pages, starting with https://www.nngroup.com/articles/ten-usability-heuristics/ and https://www.nngroup.com/articles/homepage-101/. Produce one concise cited Markdown file named ux-checklist.md, under 400 words: an 8-item checklist with one-line rationale and citation per item. Use only inspected sources. No browser writes, no other files, finish after the report.",
+      "max_tokens": 18000,
+      "max_steps": 14,
+      "deadline_minutes": 15,
+      "accept": {
+        "require": ["ux-checklist.md"],
+        "checks": [
+          "file exists and nonempty",
+          "at most 400 words",
+          "at least 5 http citations",
+          "at least 3 of 8 checklist items reference one of: visibility, feedback, consistency, error, recognition, flexibility, minimalist, help",
+          "no fabricated domain other than nngroup.com cited"
+        ]
+      }
+    },
+    {
+      "id": "website-portfolio-prompt",
+      "kind": "website",
+      "title": "Lean website: portfolio page from XYZ prompt",
+      "brief": "Create a one-page responsive portfolio website for a fictional photographer named Alex Rivera in index.html (self-contained, inline CSS/JS allowed). Requirements: hero section with name+tagline, 4-item photo gallery using https://picsum.photos seeded URLs, working lightbox modal when a gallery item is clicked, mobile breakpoints under 600px, and a footer with a mailto link. Then click a gallery item in your own browser preview to confirm the lightbox opens. No external research needed.",
+      "max_tokens": 22000,
+      "max_steps": 20,
+      "deadline_minutes": 20,
+      "accept": {
+        "require": ["index.html"],
+        "checks": [
+          "file exists and parses as HTML",
+          "contains name Alex Rivera",
+          "contains at least 4 picsum.photos image URLs",
+          "contains a lightbox/modal implementation (modal or lightbox keyword with JS handler)",
+          "media query for max-width 600px present",
+          "mailto link present",
+          "viewport meta tag present"
+        ]
+      }
+    },
+    {
+      "id": "understand-user-demand-letter",
+      "kind": "general",
+      "title": "Lean empathy: understand the user",
+      "brief": "A user writes: 'I have a small bakery, I keep losing online orders because I have no website and customers can't find my hours. I don't have much money or time.' Produce user-understanding.md, under 300 words, containing exactly these sections: User Goals, Pain Points (at least 3), Constraints, Recommended Next Step. Ground everything ONLY in the message; do not invent facts about the user or visit websites. No browser use.",
+      "max_tokens": 12000,
+      "max_steps": 10,
+      "deadline_minutes": 10,
+      "accept": {
+        "require": ["user-understanding.md"],
+        "checks": [
+          "file exists and nonempty",
+          "at most 300 words",
+          "exactly these section heads present: User Goals, Pain Points, Constraints, Recommended Next Step",
+          "at least 3 enumerated pain points",
+          "no http links (no invented research)"
+        ]
+      }
+    }
+  ]
+}

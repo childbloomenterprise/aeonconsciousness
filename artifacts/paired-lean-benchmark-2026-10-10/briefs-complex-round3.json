@@ -1,0 +1,75 @@
+{
+  "created": "2026-10-10",
+  "round": 3,
+  "purpose": "Paired live-model benchmark, COMPLEX comprehension level: tasks with missing info, ambiguity, conflicting soft requirements, and a deliberately unterminated user input. Tests whether each arm reasons about what the user actually needs and asks/resolves gaps, versus follow-the-literal-spec.",
+  "common_model_policy": "Both arms use the SAME model route (gemini-3.5-flash-lite via stored enterprise provider credential). Temperature 0 where supported.",
+  "comprehension_gates": {
+    "definition": "A task passes the comprehension gate only if the deliverable (a) resolves the stated ambiguity explicitly, (b) does not invent facts absent from the input, (c) flags unresolvable gaps instead of silently filling them, where the brief demands it.",
+    "measurement": "objective string/pattern verifiers below + manual read recorded in verification-round3.json"
+  },
+  "tasks": [
+    {
+      "id": "complex-brief-underfill",
+      "kind": "general",
+      "title": "Complex: ambiguous project brief (required info missing)",
+      "brief": "A client emails: 'We need a pricing page for our SaaS. Match our brand. Make it modern. Needs a comparison table and an FAQ. Budget is tight, timeline is 2 weeks.' No brand colors, no font, no product name, no plan structure, no pricing numbers, no FAQ content are provided. Produce ONE file, decide-briefs-pricing-page.md, under 450 words, with EXACTLY these sections: 'Ambiguities Identified' (list everyinformation gap you found, minimum 5), 'Decisions Without Asking' (for each gap: the safe default you chose for a draft and why it is safe/reversible), 'Must Confirm With Client' (the short list you would not build without an answer, minimum 3). Ground EVERYTHING in the email; do not invent a brand, product name, or prices as if they were real. No web browsing.",
+      "max_tokens": 30000,
+      "max_steps": 16,
+      "deadline_minutes": 20,
+      "accept": {
+        "require": ["decide-briefs-pricing-page.md"],
+        "checks": [
+          "file exists and nonempty",
+          "at most 450 words",
+          "exactly the three required section heads present: Ambiguities Identified, Decisions Without Asking, Must Confirm With Client",
+          "at least 5 enumerated ambiguities",
+          "at least 3 must-confirm items",
+          "no fabricated brand name treated as fact (no 'our product is called' phrasing with invented name)",
+          "contains explicit reversibility/safe-default reasoning (mentions words like default, reversible, safe, or placeholder)"
+        ]
+      }
+    },
+    {
+      "id": "complex-conflicting-constraints",
+      "kind": "website",
+      "title": "Complex: status dashboard with conflicting constraints",
+      "brief": "Build a self-contained status.html for a fictional service 'OrbitMetrics' with: (1) a service-status banner whose color comes from a JS variable statusLevel set at the top of the script (values ok/warn/down map to green/amber/red), (2) a metrics grid of at least 4 metric cards like latency, error rate, uptime that UPDATE every 2 seconds from a single downstream JSON feed URL defined in one place as FEED_URL, (3) graceful behavior: if the feed is unreachable, show a 'live data unavailable' notice and keep the last good values instead of blanking, (4) a documented limitation: the brief does not say what the feed response schema is, so define an adapter function normalizeFeed(payload) with a TODO comment listing the schema questions you would need answered, and (5) spoken-plain 'Known Limitations' paragraph on the page itself naming at least 2 assumptions you made. Then open the page in your browser preview and confirm the banner renders and the offline notice path works when FEED_URL fails (simulate by temporarily pointing it at an invalid URL). No research needed.",
+      "max_tokens": 36000,
+      "max_steps": 18,
+      "deadline_minutes": 25,
+      "accept": {
+        "require": ["status.html"],
+        "checks": [
+          "file exists and parses as HTML",
+          "statusLevel JS variable defined with ok/warn/down semantics (green/amber/red mapping present)",
+          "FEED_URL defined in exactly one place",
+          "setInterval with 2000ms refresh present",
+          "normalizeFeed function present with a TODO comment about schema questions",
+          "offline/live-data-unavailable fallback handling present (catch or error path that keeps last values)",
+          "Known Limitations section present with at least 2 assumptions"
+        ]
+      }
+    },
+    {
+      "id": "complex-user-intent-truncated",
+      "kind": "general",
+      "title": "Complex: unterminated user request (reasoning about what was NOT said)",
+      "brief": "You receive this fragment of a support message and nothing more: '...so the export keeps failing around 2,000 rows but works fine for small files. My teammate said you fixed something like this last month, I really need this fixed today because the board meeting is at 4pm and I can't' [message ends mid-sentence]. Write handle-truncated-user.md, under 350 words, EXACTLY these sections: 'What The User Actually Needs' (separate the stated need from the inferred urgency and stakeholder pressure), 'Facts vs Inferences' (a two-column list: each fact traceable to the fragment vs each inference you made and its confidence high/medium/low), 'What I Cannot Know From This Fragment' (minimum 4 items), 'Reply I Would Send' (a short empathetic reply that asks the missing questions without promising a fix time). Do not invent a cause of the failure; the row-count hypothesis is one possibility among several. No browsing.",
+      "max_tokens": 30000,
+      "max_steps": 16,
+      "deadline_minutes": 20,
+      "accept": {
+        "require": ["handle-truncated-user.md"],
+        "checks": [
+          "file exists and nonempty",
+          "at most 350 words",
+          "exactly the four required section heads present",
+          "at least 4 cannot-know items",
+          "confidence labels (high/medium/low) present",
+          "reply section does not promise a fix deadline (no 'will be fixed by', 'guaranteed', 'done by' phrasing)",
+          "does not assert row-count as definite cause (no unqualified 'the bug is' phrasing tied to row count)"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "checks": [
+    {
+      "viewport": "desktop",
+      "amount": "100",
+      "tip": "15",
+      "tip_result": "15.00",
+      "total_result": "115.00",
+      "passed": true
+    },
+    {
+      "viewport": "desktop",
+      "amount": "0",
+      "tip": "20",
+      "tip_result": "0.00",
+      "total_result": "0.00",
+      "passed": true
+    },
+    {
+      "viewport": "desktop",
+      "amount": "40",
+      "tip": "0",
+      "tip_result": "0.00",
+      "total_result": "40.00",
+      "passed": true
+    },
+    {
+      "viewport": "desktop",
+      "amount": "12.50",
+      "tip": "18",
+      "tip_result": "2.25",
+      "total_result": "14.75",
+      "passed": true
+    },
+    {
+      "viewport": "desktop",
+      "amount": "-1",
+      "tip": "15",
+      "error": "Please enter valid non-negative numbers for bill amount and tip percentage.",
+      "passed": true
+    },
+    {
+      "viewport": "desktop",
+      "amount": "100",
+      "tip": "-1",
+      "error": "Please enter valid non-negative numbers for bill amount and tip percentage.",
+      "passed": true
+    },
+    {
+      "viewport": "desktop",
+      "amount": "",
+      "tip": "15",
+      "error": "Please enter valid non-negative numbers for bill amount and tip percentage.",
+      "passed": true
+    },
+    {
+      "viewport": "mobile",
+      "amount": "100",
+      "tip": "15",
+      "tip_result": "15.00",
+      "total_result": "115.00",
+      "passed": true
+    },
+    {
+      "viewport": "mobile",
+      "amount": "0",
+      "tip": "20",
+      "tip_result": "0.00",
+      "total_result": "0.00",
+      "passed": true
+    },
+    {
+      "viewport": "mobile",
+      "amount": "40",
+      "tip": "0",
+      "tip_result": "0.00",
+      "total_result": "40.00",
+      "passed": true
+    },
+    {
+      "viewport": "mobile",
+      "amount": "12.50",
+      "tip": "18",
+      "tip_result": "2.25",
+      "total_result": "14.75",
+      "passed": true
+    },
+    {
+      "viewport": "mobile",
+      "amount": "-1",
+      "tip": "15",
+      "error": "Please enter valid non-negative numbers for bill amount and tip percentage.",
+      "passed": true
+    },
+    {
+      "viewport": "mobile",
+      "amount": "100",
+      "tip": "-1",
+      "error": "Please enter valid non-negative numbers for bill amount and tip percentage.",
+      "passed": true
+    },
+    {
+      "viewport": "mobile",
+      "amount": "",
+      "tip": "15",
+      "error": "Please enter valid non-negative numbers for bill amount and tip percentage.",
+      "passed": true
+    }
+  ],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "documentWidth": 1440,
+      "buttonHeight": 44,
+      "labels": true,
+      "screenshot": "C:\\Users\\vaish\\OneDrive\\Documents\\ChatGPT\\AEON 1\\artifacts\\local-2026-10-10\\website-final\\tip-desktop.png"
+    },
+    {
+      "name": "mobile",
+      "width": 375,
+      "documentWidth": 375,
+      "buttonHeight": 44,
+      "labels": true,
+      "screenshot": "C:\\Users\\vaish\\OneDrive\\Documents\\ChatGPT\\AEON 1\\artifacts\\local-2026-10-10\\website-final\\tip-mobile.png"
+    }
+  ],
+  "javascript_errors": [],
+  "portable_no_external_requests": true,
+  "keyboard_enter": true,
+  "tested_file_sha256": "975bc1fecc93838190a323a8ab8ed766b14ccaeed826a97b11cc6ff16a26f7ec",
+  "visual_review": "screenshots saved; inspect independently",
+  "provenance": {
+    "original_job": "job_8c4b95bebd9e4364b7263412ac6d49e1",
+    "assisted_change": "Enter-key calculation only",
+    "original_worker_evidence_unchanged": true
+  }
+}

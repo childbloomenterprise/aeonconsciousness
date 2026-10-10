@@ -1,0 +1,13 @@
+test_encrypted_traversal_absolute_duplicates_symlinks_hash_and_size_attacks_refused (test_local_state_backup.LocalStateBackupTests.test_encrypted_traversal_absolute_duplicates_symlinks_hash_and_size_attacks_refused) ... ok
+test_existing_archive_nonempty_target_source_and_hosted_overlap_refused (test_local_state_backup.LocalStateBackupTests.test_existing_archive_nonempty_target_source_and_hosted_overlap_refused) ... ok
+test_live_port_and_live_registry_refuse_without_stopping_process (test_local_state_backup.LocalStateBackupTests.test_live_port_and_live_registry_refuse_without_stopping_process) ... ok
+test_repository_archive_and_source_size_guard_refused (test_local_state_backup.LocalStateBackupTests.test_repository_archive_and_source_size_guard_refused) ... ok
+test_roundtrip_restores_all_hashes_identity_checkpoint_sqlite_and_empty_directory (test_local_state_backup.LocalStateBackupTests.test_roundtrip_restores_all_hashes_identity_checkpoint_sqlite_and_empty_directory) ... ok
+test_source_junction_refused_before_reading_target (test_local_state_backup.LocalStateBackupTests.test_source_junction_refused_before_reading_target) ... ok
+test_tampered_ciphertext_refuses_before_creating_target (test_local_state_backup.LocalStateBackupTests.test_tampered_ciphertext_refuses_before_creating_target) ... ok
+test_unregistered_source_worker_process_refused (test_local_state_backup.LocalStateBackupTests.test_unregistered_source_worker_process_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 67.183s
+
+OK

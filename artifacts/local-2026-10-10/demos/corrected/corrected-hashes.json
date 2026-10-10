@@ -1,0 +1,11 @@
+{
+  "checked_at": "2026-10-10T01:00:26.727409+00:00",
+  "sha256": {
+    "backup-strategy.md": "74efd2f9c566a19e39e3c8aa013b69ff4c228e85f2df55caf64841fba6cf13ce",
+    "source-summary.json": "e84d8490e92a5ab3fcb743a8578c64babf6a2d92afd2cb5e4fc8bdaaaef6f0a4",
+    "checked-summary.md": "f69a0776fbc29bbb36c9a190b191509abdfe264f8cf91dbe11da277d88683e26",
+    "correction-review.md": "bb8df4a8cfa02f863ca1e5bfeaa4d1721d3bbab1bfd876321c3c803d77de0b6d",
+    "assertion_check.py": "bc636599995933e43df148d0e12f2f22fc4c71dc2920ef07d73c77eaa5c2894c",
+    "assertion-receipt.json": "b59b0d557fae4b700258b98b2b7153a4937823dc5ca37a24b9c1662abaf7a0d8"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "checked_at": "2026-10-10T00:57:32.009624+00:00",
+  "exactly_two_submissions": true,
+  "automatic_resumes": 0,
+  "superiority_proven": false,
+  "demos": {
+    "sqlite-backup-research": {
+      "control_plane_status": "completed",
+      "runtime_status": "completed",
+      "model_tokens": 16913,
+      "input_tokens": 15030,
+      "output_tokens": 1883,
+      "steps": 4,
+      "elapsed_seconds": 21.32,
+      "provider_route": [
+        {
+          "model": "gemini-3.5-flash-lite",
+          "provider": "gemini"
+        }
+      ],
+      "audit_valid_reported": true,
+      "download_hashes_independently_verified": [
+        "backup-strategy.md",
+        "deliverables.zip",
+        "evidence/runtime-result.json"
+      ],
+      "bundle_members_equal_individual_downloads": [
+        "backup-strategy.md",
+        "evidence/runtime-result.json"
+      ],
+      "recorded_command_checks": [],
+      "inspection_note": "Inspector checks do not retroactively create a worker execution receipt.",
+      "independent_primary_source_claim_review": "requires correction: live file copying advice insufficiently coordinated",
+      "full_brief_independently_accepted": false
+    },
+    "sqlite-browser-file": {
+      "control_plane_status": "completed",
+      "runtime_status": "completed",
+      "model_tokens": 11451,
+      "input_tokens": 9984,
+      "output_tokens": 1467,
+      "steps": 3,
+      "elapsed_seconds": 14.81,
+      "provider_route": [
+        {
+          "model": "gemini-3.5-flash-lite",
+          "provider": "gemini"
+        }
+      ],
+      "audit_valid_reported": true,
+      "download_hashes_independently_verified": [
+        "checked-summary.md",
+        "deliverables.zip",
+        "evidence/runtime-result.json",
+        "source-summary.json"
+      ],
+      "bundle_members_equal_individual_downloads": [
+        "source-summary.json",
+        "checked-summary.md",
+        "evidence/runtime-result.json"
+      ],
+      "recorded_command_checks": [],
+      "inspection_note": "Inspector checks do not retroactively create a worker execution receipt.",
+      "independent_json_assertions": "passed",
+      "independent_primary_source_claim_review": "passed against SQLite About page",
+      "requested_worker_assertion_execution": "failed: command_checks empty; no recorded run_check",
+      "full_brief_independently_accepted": false
+    }
+  }
+}

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portable Offline Tip Calculator</title>
+<style>
+  :root {
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --text-color: #212529;
+    --primary-color: #6f42c1;
+    --primary-hover: #5a32a3;
+    --border-color: #ced4da;
+    --error-color: #dc3545;
+    --success-color: #198754;
+  }
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+  .calculator-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    text-align: center;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.25);
+  }
+  button {
+    width: 100%;
+    min-height: 44px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+  }
+  button:hover, button:focus {
+    background-color: var(--primary-hover);
+  }
+  button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.25);
+  }
+  .results {
+    margin-top: 24px;
+    border-top: 1px solid #e9ecef;
+    padding-top: 16px;
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1.05rem;
+  }
+  .result-label {
+    font-weight: 500;
+  }
+  .result-value {
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+  #error {
+    margin-top: 16px;
+    color: var(--error-color);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-align: center;
+    min-height: 24px;
+  }
+</style>
+</head>
+<body>
+  <div class="calculator-card">
+    <h1>Tip Calculator</h1>
+    <div class="form-group">
+      <label for="amount">Bill Amount ($)</label>
+      <input type="number" id="amount" step="any" value="100">
+    </div>
+    <div class="form-group">
+      <label for="tip">Tip Percentage (%)</label>
+      <input type="number" id="tip" step="any" value="15">
+    </div>
+    <button id="calculate">Calculate</button>
+    <div id="error" role="alert" aria-live="polite"></div>
+    <div class="results">
+      <div class="result-row">
+        <span class="result-label">Tip Amount:</span>
+        <span id="tip-result" class="result-value">0.00</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Total Amount:</span>
+        <span id="total-result" class="result-value">0.00</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function calculateTip() {
+    const amountInput = document.getElementById('amount').value;
+    const tipInput = document.getElementById('tip').value;
+    const errorDiv = document.getElementById('error');
+    const tipResult = document.getElementById('tip-result');
+    const totalResult = document.getElementById('total-result');
+
+    errorDiv.textContent = '';
+
+    const amount = parseFloat(amountInput);
+    const tipPercent = parseFloat(tipInput);
+
+    if (isNaN(amount) || isNaN(tipPercent) || amount < 0 || tipPercent < 0) {
+      errorDiv.textContent = 'Please enter valid non-negative numbers for bill amount and tip percentage.';
+      tipResult.textContent = '0.00';
+      totalResult.textContent = '0.00';
+      return;
+    }
+
+    const tipAmount = (amount * tipPercent) / 100;
+    const totalAmount = amount + tipAmount;
+
+    tipResult.textContent = tipAmount.toFixed(2);
+    totalResult.textContent = totalAmount.toFixed(2);
+  }
+
+  document.getElementById('calculate').addEventListener('click', calculateTip);
+
+    for (const id of ['amount', 'tip']) {
+    document.getElementById(id).addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') { event.preventDefault(); calculateTip(); }
+    });
+  }
+  // Run calculation on load with defaults
+  window.addEventListener('DOMContentLoaded', calculateTip);
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "snapshot_files": 283,
+  "queue_integrity": "ok",
+  "queue_jobs": 15,
+  "restored_ledgers": 15,
+  "same_user_machine_only": true,
+  "no_restored_worker_launched": true,
+  "fresh_host_drill": false
+}

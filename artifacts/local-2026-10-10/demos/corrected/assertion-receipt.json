@@ -1,0 +1,16 @@
+{
+  "started_at": "2026-10-10T01:00:26.505133+00:00",
+  "finished_at": "2026-10-10T01:00:26.727409+00:00",
+  "timeout_seconds": 10,
+  "elapsed_seconds": 0.219,
+  "command": [
+    "C:\\Users\\vaish\\AppData\\Local\\AEON\\enterprise-private\\venv\\Scripts\\python.exe",
+    "C:\\Users\\vaish\\OneDrive\\Documents\\ChatGPT\\AEON 1\\artifacts\\local-2026-10-10\\demos\\corrected\\assertion_check.py"
+  ],
+  "returncode": 0,
+  "stdout": "{\"passed\": true, \"checks\": [{\"label\": \"original_download\", \"sha256\": \"35685d472fa95bcbd0286d8ce76dde96a3afd9e4e122be9dd977d9e5c3625eae\", \"json_parse\": true, \"required_fields\": true, \"exact_title_url\": true, \"three_nonempty_claim_strings\": true}, {\"label\": \"independent_correction\", \"sha256\": \"e84d8490e92a5ab3fcb743a8578c64babf6a2d92afd2cb5e4fc8bdaaaef6f0a4\", \"json_parse\": true, \"required_fields\": true, \"exact_title_url\": true, \"three_nonempty_claim_strings\": true}], \"original_downloads_hashes_verified\": 7, \"markdown_citations_present\": true, \"authority\": \"independent inspector after original worker completion\"}\n",
+  "stderr": "",
+  "original_worker_execution": false,
+  "performed_by": "independent acceptance inspector",
+  "scope": "original downloaded JSON plus corrected deliverables; no live API/state changes"
+}

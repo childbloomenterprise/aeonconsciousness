@@ -1,0 +1,37 @@
+✔ unauthenticated requests rejected; cross-origin mutation rejected (50.7024ms)
+✔ tenant-scoped reads hide other organizations (7.8423ms)
+✔ viewer cannot create tasks or enroll workers (6.5433ms)
+✔ idempotency produces one job and one audit mutation (6.9217ms)
+✔ daily quota rejects without orphan task or audit (5.6749ms)
+✔ external grant waits for approval; self-approval needs explicit owner override (7.5083ms)
+✔ spending disabled and grant domains reject private/invalid hostnames (5.6504ms)
+✔ atomic claims give one worker per job; pending approval cannot claim (18.3934ms)
+✔ worker token cannot use owner APIs (5.3995ms)
+✔ expired or cancelled lease cannot heartbeat/finish (19.5217ms)
+✔ artifacts reject traversal, require current lease, and download as attachment (10.3873ms)
+✔ completed gate refuses missing artifact, gaps, invalid audit or token overrun (23.0496ms)
+✔ configured owner controls initial workspace bootstrap (3.1431ms)
+✔ cancellation during R2 upload prevents metadata commit (10.9964ms)
+✔ JSON body bound enforced before parsing (3.3ms)
+✔ cancellation cannot recycle reserved token quota (4.945ms)
+✔ partial resume reserves remaining tokens atomically (6.6978ms)
+✔ revoked worker immediately loses API access (8.8122ms)
+✔ invitation binds email and can only be consumed once (9.88ms)
+✔ loopback guards reject forged Host, foreign Origin and cross-site reads (74.7257ms)
+✔ localhost alias preserves same-origin writes and forged identity headers cannot change owner (53.4876ms)
+✔ HTTP adapter rejects declared and chunked oversized bodies before API buffering (20.3486ms)
+✔ runtime metadata declares local persistence without credentials or paths (9.6397ms)
+✔ tasks, worker identity and uploaded artifact survive local server restart (123.6904ms)
+✔ concurrent local submissions honor atomic quota without nested transactions (31.143ms)
+✔ cancelled HTTP task rejects heartbeat, upload, finish and resume while preserving reservation (134.2003ms)
+✔ expired lease requires explicit recovery on original worker and invalidates stale authority (204.3079ms)
+✔ cumulative resume limits reject overflow without changing task or audit and allow exact runtime caps (127.3534ms)
+✔ retry after saved submission loses response creates exactly one job; edits create another (57.1676ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1130.7807

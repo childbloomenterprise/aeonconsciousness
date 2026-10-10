@@ -20,7 +20,24 @@ def execute(job: dict, root: Path, *, adapter=None) -> dict:
     store = TaskStore(root / "state")
     runner = TaskRunner(store, adapter)
     if (store.directory(task_id) / "checkpoint.json").exists():
-        result = runner.resume(task_id, **(job.get("resume_options") or {}))
+        checkpoint = store.load(task_id)
+        options = {}
+        if job.get("resume_options") and checkpoint["status"] not in {"completed", "failed"}:
+            # The queue holds cumulative authorized ceilings. A claim may replay
+            # after an extension was saved but before its result was delivered.
+            # Reconcile ceilings rather than applying the same relative grant twice.
+            fields = {
+                "additional_model_tokens": ("max_tokens", "max_model_tokens"),
+                "additional_steps": ("max_steps", "max_steps"),
+                "additional_minutes": ("deadline_minutes", "deadline_minutes"),
+                "additional_revisions": ("max_revisions", "max_revisions"),
+            }
+            for option, (queue_field, spec_field) in fields.items():
+                delta = job[queue_field] - checkpoint["spec"][spec_field]
+                if delta < 0:
+                    raise ValueError("Checkpoint limits exceed the authorized queue ceilings")
+                options[option] = delta
+        result = runner.resume(task_id, **options)
     else:
         spec = TaskSpec(
             brief=job["brief"],

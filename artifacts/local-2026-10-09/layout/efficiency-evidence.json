@@ -1,0 +1,125 @@
+{
+  "invoice": {
+    "status": "completed",
+    "steps": 7,
+    "model_tokens": 20596,
+    "input_tokens": 18310,
+    "output_tokens": 2286,
+    "efficiency": {
+      "browser_inspections": 0,
+      "inspection_cache_hits": 0,
+      "model_calls": 9,
+      "prompt_characters": 73216
+    },
+    "model_calls_by_kind": {
+      "model_plan": {
+        "calls": 1,
+        "tokens": 1444,
+        "input_tokens": 675,
+        "output_tokens": 769
+      },
+      "model_decision": {
+        "calls": 7,
+        "tokens": 16783,
+        "input_tokens": 15275,
+        "output_tokens": 1508
+      },
+      "model_review": {
+        "calls": 1,
+        "tokens": 2369,
+        "input_tokens": 2360,
+        "output_tokens": 9
+      }
+    },
+    "tools": {
+      "write_file": 5,
+      "run_check": 1
+    },
+    "tool_errors": {},
+    "failed_tool_decision_usage": [],
+    "observed_checkpoint_finished_at": "2026-10-08T14:13:42.206165+00:00",
+    "original_token_limit": 20000,
+    "current_token_limit": 30000,
+    "input_fraction": 0.889
+  },
+  "tip_calculator": {
+    "status": "interrupted",
+    "steps": 8,
+    "model_tokens": 25051,
+    "input_tokens": 18670,
+    "output_tokens": 6381,
+    "efficiency": {
+      "browser_inspections": 2,
+      "inspection_cache_hits": 1,
+      "model_calls": 10,
+      "prompt_characters": 87860
+    },
+    "model_calls_by_kind": {
+      "model_plan": {
+        "calls": 1,
+        "tokens": 1474,
+        "input_tokens": 703,
+        "output_tokens": 771
+      },
+      "model_decision": {
+        "calls": 8,
+        "tokens": 23577,
+        "input_tokens": 17967,
+        "output_tokens": 5610
+      }
+    },
+    "tools": {
+      "write_file": 3,
+      "browser": 5
+    },
+    "tool_errors": {
+      "malformed_fills": 5
+    },
+    "failed_tool_decision_usage": [
+      {
+        "classification": "malformed_fills",
+        "preceding_decision": {
+          "tokens": 2377,
+          "input_tokens": 2124,
+          "output_tokens": 253
+        }
+      },
+      {
+        "classification": "malformed_fills",
+        "preceding_decision": {
+          "tokens": 2385,
+          "input_tokens": 2276,
+          "output_tokens": 109
+        }
+      },
+      {
+        "classification": "malformed_fills",
+        "preceding_decision": {
+          "tokens": 2463,
+          "input_tokens": 2349,
+          "output_tokens": 114
+        }
+      },
+      {
+        "classification": "malformed_fills",
+        "preceding_decision": {
+          "tokens": 2493,
+          "input_tokens": 2382,
+          "output_tokens": 111
+        }
+      },
+      {
+        "classification": "malformed_fills",
+        "preceding_decision": {
+          "tokens": 2421,
+          "input_tokens": 2304,
+          "output_tokens": 117
+        }
+      }
+    ],
+    "observed_checkpoint_finished_at": null,
+    "original_token_limit": 30000,
+    "current_token_limit": 40000,
+    "input_fraction": 0.7453
+  }
+}

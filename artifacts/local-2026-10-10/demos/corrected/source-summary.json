@@ -1,0 +1,9 @@
+{
+  "title": "About SQLite",
+  "source_url": "https://www.sqlite.org/about.html",
+  "claims": [
+    "SQLite provides an embedded transactional SQL engine that runs within the application process without a separate database server.",
+    "SQLite source code is public domain and may be used for commercial or private purposes.",
+    "SQLite accesses ordinary disk files directly to store and retrieve database contents."
+  ]
+}

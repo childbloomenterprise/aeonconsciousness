@@ -1,0 +1,1431 @@
+{
+  "time_utc": "2026-10-09T16:24:26.424048+00:00",
+  "purpose": "Final implementation live compatibility; no browser or file action executed",
+  "requests": [
+    {
+      "body": {
+        "systemInstruction": {
+          "parts": [
+            {
+              "text": "Return the supplied expected_action exactly as JSON. Schema compatibility diagnostic; no tool executes."
+            }
+          ]
+        },
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "{\"available_tools\": {\"search_web\": {\"query\": \"Public web search query\"}, \"read_url\": {\"url\": \"Public HTTP(S) source URL; returns page text\", \"find\": \"Optional exact term to focus excerpt on a long page\"}, \"list_files\": {\"path\": \"Workspace-relative directory, default .\"}, \"read_file\": {\"path\": \"Workspace-relative text file\"}, \"write_file\": {\"path\": \"Workspace-relative open-format file\", \"content\": \"Complete UTF-8 content\"}, \"replace_text\": {\"path\": \"Existing workspace-relative text file\", \"old\": \"Unique exact excerpt to replace\", \"new\": \"Replacement text\"}, \"create_site\": {\"name\": \"Name from brief\", \"role\": \"Verified role\", \"tagline\": \"Original expressive line\", \"intro\": \"Short non-factual creative introduction\", \"audience\": \"Intended visitors\", \"palette\": \"amber|violet|cyan|rose\", \"sections\": [{\"heading\": \"Short heading\", \"body\": \"Grounded, useful text\"}], \"contact_email\": \"Only if provided or verified\"}, \"run_check\": {\"check\": \"python_script|python_compile|node_check|python_tests|npm_build|npm_test|npm_install\", \"path\": \"Optional workspace-relative file. python_script runs an assertion/check script, not merely syntax compilation.\"}, \"inspect_site\": {\"path\": \"Workspace-relative HTML file; captures desktop/mobile screenshots\"}, \"browser\": {\"operation\": \"navigate|navigate_local|screenshot|click|fill|test_local\", \"url\": \"Public URL for navigate; workspace-relative HTML path for navigate_local/test_local\", \"selector\": \"CSS selector for click/fill\", \"value\": \"Fill text\", \"cases\": \"For test_local: 1..12 objects with click,expected and either selector,value or fills:[{selector,value},...]. fills contains objects, never flattened strings/null. If batching fails, use navigate_local then separate fill actions and click.\", \"test_local_example\": {\"operation\": \"test_local\", \"url\": \"index.html\", \"cases\": [{\"fills\": [{\"selector\": \"#bill\", \"value\": \"100\"}, {\"selector\": \"#tip\", \"value\": \"15\"}], \"click\": \"#calculate\", \"expected\": \"115\"}]}, \"effect\": \"browser_write for local interactions; granted external action type for public pages\", \"amount\": \"Required declared amount for spend\", \"recipient\": \"Required granted recipient for message\"}, \"finish\": {\"summary\": \"What was delivered\", \"answer\": \"Optional final answer if no file exists\"}}, \"expected_action\": {\"tool\": \"browser\", \"args\": {\"operation\": \"test_local\", \"url\": \"index.html\", \"cases\": [{\"fills\": [{\"selector\": \"#amount\", \"value\": \"100\"}, {\"selector\": \"#tip\", \"value\": \"15\"}], \"click\": \"#calculate\", \"expected\": \"115.00\"}, {\"fills\": [{\"selector\": \"#amount\", \"value\": \"0\"}, {\"selector\": \"#tip\", \"value\": \"20\"}], \"click\": \"#calculate\", \"expected\": \"0.00\"}, {\"fills\": [{\"selector\": \"#amount\", \"value\": \"-1\"}, {\"selector\": \"#tip\", \"value\": \"15\"}], \"click\": \"#calculate\", \"expected\": \"Please enter a non-negative amount\"}]}, \"decision_summary\": \"Check normal, zero and negative inputs.\"}}"
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.3,
+          "maxOutputTokens": 1024,
+          "responseMimeType": "application/json",
+          "responseJsonSchema": {
+            "type": "object",
+            "properties": {
+              "tool": {
+                "type": "string",
+                "enum": [
+                  "run_check",
+                  "search_web",
+                  "create_site",
+                  "read_file",
+                  "browser",
+                  "replace_text",
+                  "list_files",
+                  "write_file",
+                  "inspect_site",
+                  "read_url",
+                  "finish"
+                ]
+              },
+              "args": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "query": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "query"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string"
+                      },
+                      "find": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "content"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "old": {
+                        "type": "string"
+                      },
+                      "new": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "old",
+                      "new"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "tagline": {
+                        "type": "string"
+                      },
+                      "intro": {
+                        "type": "string"
+                      },
+                      "audience": {
+                        "type": "string"
+                      },
+                      "palette": {
+                        "type": "string"
+                      },
+                      "sections": {
+                        "type": "array",
+                        "maxItems": 3,
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "heading": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "heading",
+                            "body"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "contact_email": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "check": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "check"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "summary": {
+                        "type": "string"
+                      },
+                      "answer": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "navigate"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "effect": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "recipient": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "navigate_local"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "screenshot"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "operation"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "click"
+                        ]
+                      },
+                      "selector": {
+                        "type": "string"
+                      },
+                      "effect": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "recipient": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "selector"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "fill"
+                        ]
+                      },
+                      "selector": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      },
+                      "effect": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "recipient": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "selector",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "test_local"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "cases": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 12,
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "click": {
+                              "type": "string"
+                            },
+                            "expected": {
+                              "type": "string"
+                            },
+                            "selector": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            },
+                            "fills": {
+                              "type": "array",
+                              "minItems": 1,
+                              "description": "One to twelve selector/value objects; the tool rejects more than twelve.",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "selector": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "selector",
+                                  "value"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "click",
+                            "expected"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "url",
+                      "cases"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "decision_summary": {
+                "type": "string"
+              },
+              "prediction": {
+                "type": "string"
+              },
+              "initiative": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "tool",
+              "args",
+              "decision_summary"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "http_status": 200
+    },
+    {
+      "body": {
+        "systemInstruction": {
+          "parts": [
+            {
+              "text": "Return the supplied expected_action exactly as JSON. Schema compatibility diagnostic; no tool executes."
+            }
+          ]
+        },
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "{\"available_tools\": {\"search_web\": {\"query\": \"Public web search query\"}, \"read_url\": {\"url\": \"Public HTTP(S) source URL; returns page text\", \"find\": \"Optional exact term to focus excerpt on a long page\"}, \"list_files\": {\"path\": \"Workspace-relative directory, default .\"}, \"read_file\": {\"path\": \"Workspace-relative text file\"}, \"write_file\": {\"path\": \"Workspace-relative open-format file\", \"content\": \"Complete UTF-8 content\"}, \"replace_text\": {\"path\": \"Existing workspace-relative text file\", \"old\": \"Unique exact excerpt to replace\", \"new\": \"Replacement text\"}, \"create_site\": {\"name\": \"Name from brief\", \"role\": \"Verified role\", \"tagline\": \"Original expressive line\", \"intro\": \"Short non-factual creative introduction\", \"audience\": \"Intended visitors\", \"palette\": \"amber|violet|cyan|rose\", \"sections\": [{\"heading\": \"Short heading\", \"body\": \"Grounded, useful text\"}], \"contact_email\": \"Only if provided or verified\"}, \"run_check\": {\"check\": \"python_script|python_compile|node_check|python_tests|npm_build|npm_test|npm_install\", \"path\": \"Optional workspace-relative file. python_script runs an assertion/check script, not merely syntax compilation.\"}, \"inspect_site\": {\"path\": \"Workspace-relative HTML file; captures desktop/mobile screenshots\"}, \"browser\": {\"operation\": \"navigate|navigate_local|screenshot|click|fill|test_local\", \"url\": \"Public URL for navigate; workspace-relative HTML path for navigate_local/test_local\", \"selector\": \"CSS selector for click/fill\", \"value\": \"Fill text\", \"cases\": \"For test_local: 1..12 objects with click,expected and either selector,value or fills:[{selector,value},...]. fills contains objects, never flattened strings/null. If batching fails, use navigate_local then separate fill actions and click.\", \"test_local_example\": {\"operation\": \"test_local\", \"url\": \"index.html\", \"cases\": [{\"fills\": [{\"selector\": \"#bill\", \"value\": \"100\"}, {\"selector\": \"#tip\", \"value\": \"15\"}], \"click\": \"#calculate\", \"expected\": \"115\"}]}, \"effect\": \"browser_write for local interactions; granted external action type for public pages\", \"amount\": \"Required declared amount for spend\", \"recipient\": \"Required granted recipient for message\"}, \"finish\": {\"summary\": \"What was delivered\", \"answer\": \"Optional final answer if no file exists\"}}, \"expected_action\": {\"tool\": \"browser\", \"args\": {\"operation\": \"test_local\", \"url\": \"index.html\", \"cases\": [{\"fills\": [{\"selector\": \"#amount\", \"value\": \"100\"}, {\"selector\": \"#tip\", \"value\": \"15\"}], \"click\": \"#calculate\", \"expected\": \"115.00\"}, {\"fills\": [{\"selector\": \"#amount\", \"value\": \"0\"}, {\"selector\": \"#tip\", \"value\": \"20\"}], \"click\": \"#calculate\", \"expected\": \"0.00\"}, {\"fills\": [{\"selector\": \"#amount\", \"value\": \"-1\"}, {\"selector\": \"#tip\", \"value\": \"15\"}], \"click\": \"#calculate\", \"expected\": \"Please enter a non-negative amount\"}]}, \"decision_summary\": \"Check normal, zero and negative inputs.\"}}"
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.3,
+          "maxOutputTokens": 1024,
+          "responseMimeType": "application/json",
+          "responseJsonSchema": {
+            "type": "object",
+            "properties": {
+              "tool": {
+                "type": "string",
+                "enum": [
+                  "run_check",
+                  "search_web",
+                  "create_site",
+                  "read_file",
+                  "browser",
+                  "replace_text",
+                  "list_files",
+                  "write_file",
+                  "inspect_site",
+                  "read_url",
+                  "finish"
+                ]
+              },
+              "args": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "query": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "query"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string"
+                      },
+                      "find": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "content"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "old": {
+                        "type": "string"
+                      },
+                      "new": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "old",
+                      "new"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "tagline": {
+                        "type": "string"
+                      },
+                      "intro": {
+                        "type": "string"
+                      },
+                      "audience": {
+                        "type": "string"
+                      },
+                      "palette": {
+                        "type": "string"
+                      },
+                      "sections": {
+                        "type": "array",
+                        "maxItems": 3,
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "heading": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "heading",
+                            "body"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "contact_email": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "check": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "check"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "summary": {
+                        "type": "string"
+                      },
+                      "answer": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "navigate"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "effect": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "recipient": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "navigate_local"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "screenshot"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "operation"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "click"
+                        ]
+                      },
+                      "selector": {
+                        "type": "string"
+                      },
+                      "effect": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "recipient": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "selector"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "fill"
+                        ]
+                      },
+                      "selector": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      },
+                      "effect": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "recipient": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "selector",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "test_local"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "cases": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 12,
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "click": {
+                              "type": "string"
+                            },
+                            "expected": {
+                              "type": "string"
+                            },
+                            "selector": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            },
+                            "fills": {
+                              "type": "array",
+                              "minItems": 1,
+                              "description": "One to twelve selector/value objects; the tool rejects more than twelve.",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "selector": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "selector",
+                                  "value"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "click",
+                            "expected"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "url",
+                      "cases"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "decision_summary": {
+                "type": "string"
+              },
+              "prediction": {
+                "type": "string"
+              },
+              "initiative": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "tool",
+              "args",
+              "decision_summary"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "http_status": 200
+    },
+    {
+      "body": {
+        "systemInstruction": {
+          "parts": [
+            {
+              "text": "Return the supplied expected_action exactly as JSON. Schema compatibility diagnostic; no tool executes."
+            }
+          ]
+        },
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "{\"available_tools\": {\"search_web\": {\"query\": \"Public web search query\"}, \"read_url\": {\"url\": \"Public HTTP(S) source URL; returns page text\", \"find\": \"Optional exact term to focus excerpt on a long page\"}, \"list_files\": {\"path\": \"Workspace-relative directory, default .\"}, \"read_file\": {\"path\": \"Workspace-relative text file\"}, \"write_file\": {\"path\": \"Workspace-relative open-format file\", \"content\": \"Complete UTF-8 content\"}, \"replace_text\": {\"path\": \"Existing workspace-relative text file\", \"old\": \"Unique exact excerpt to replace\", \"new\": \"Replacement text\"}, \"create_site\": {\"name\": \"Name from brief\", \"role\": \"Verified role\", \"tagline\": \"Original expressive line\", \"intro\": \"Short non-factual creative introduction\", \"audience\": \"Intended visitors\", \"palette\": \"amber|violet|cyan|rose\", \"sections\": [{\"heading\": \"Short heading\", \"body\": \"Grounded, useful text\"}], \"contact_email\": \"Only if provided or verified\"}, \"run_check\": {\"check\": \"python_script|python_compile|node_check|python_tests|npm_build|npm_test|npm_install\", \"path\": \"Optional workspace-relative file. python_script runs an assertion/check script, not merely syntax compilation.\"}, \"inspect_site\": {\"path\": \"Workspace-relative HTML file; captures desktop/mobile screenshots\"}, \"browser\": {\"operation\": \"navigate|navigate_local|screenshot|click|fill|test_local\", \"url\": \"Public URL for navigate; workspace-relative HTML path for navigate_local/test_local\", \"selector\": \"CSS selector for click/fill\", \"value\": \"Fill text\", \"cases\": \"For test_local: 1..12 objects with click,expected and either selector,value or fills:[{selector,value},...]. fills contains objects, never flattened strings/null. If batching fails, use navigate_local then separate fill actions and click.\", \"test_local_example\": {\"operation\": \"test_local\", \"url\": \"index.html\", \"cases\": [{\"fills\": [{\"selector\": \"#bill\", \"value\": \"100\"}, {\"selector\": \"#tip\", \"value\": \"15\"}], \"click\": \"#calculate\", \"expected\": \"115\"}]}, \"effect\": \"browser_write for local interactions; granted external action type for public pages\", \"amount\": \"Required declared amount for spend\", \"recipient\": \"Required granted recipient for message\"}, \"finish\": {\"summary\": \"What was delivered\", \"answer\": \"Optional final answer if no file exists\"}}, \"expected_action\": {\"tool\": \"write_file\", \"args\": {\"path\": \"check.txt\", \"content\": \"Verified sample text.\"}, \"decision_summary\": \"Write the requested file.\"}}"
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.3,
+          "maxOutputTokens": 1024,
+          "responseMimeType": "application/json",
+          "responseJsonSchema": {
+            "type": "object",
+            "properties": {
+              "tool": {
+                "type": "string",
+                "enum": [
+                  "run_check",
+                  "search_web",
+                  "create_site",
+                  "read_file",
+                  "browser",
+                  "replace_text",
+                  "list_files",
+                  "write_file",
+                  "inspect_site",
+                  "read_url",
+                  "finish"
+                ]
+              },
+              "args": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "query": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "query"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string"
+                      },
+                      "find": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "content"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "old": {
+                        "type": "string"
+                      },
+                      "new": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "old",
+                      "new"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "tagline": {
+                        "type": "string"
+                      },
+                      "intro": {
+                        "type": "string"
+                      },
+                      "audience": {
+                        "type": "string"
+                      },
+                      "palette": {
+                        "type": "string"
+                      },
+                      "sections": {
+                        "type": "array",
+                        "maxItems": 3,
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "heading": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "heading",
+                            "body"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "contact_email": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "check": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "check"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "summary": {
+                        "type": "string"
+                      },
+                      "answer": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "navigate"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "effect": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "recipient": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "navigate_local"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "screenshot"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "operation"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "click"
+                        ]
+                      },
+                      "selector": {
+                        "type": "string"
+                      },
+                      "effect": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "recipient": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "selector"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "fill"
+                        ]
+                      },
+                      "selector": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      },
+                      "effect": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "recipient": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "selector",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "enum": [
+                          "test_local"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "cases": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 12,
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "click": {
+                              "type": "string"
+                            },
+                            "expected": {
+                              "type": "string"
+                            },
+                            "selector": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            },
+                            "fills": {
+                              "type": "array",
+                              "minItems": 1,
+                              "description": "One to twelve selector/value objects; the tool rejects more than twelve.",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "selector": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "selector",
+                                  "value"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "click",
+                            "expected"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "url",
+                      "cases"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "decision_summary": {
+                "type": "string"
+              },
+              "prediction": {
+                "type": "string"
+              },
+              "initiative": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "tool",
+              "args",
+              "decision_summary"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "http_status": 200
+    }
+  ],
+  "replies": [
+    {
+      "model": "gemini-3.5-flash-lite",
+      "tokens": 1098,
+      "input_tokens": 789,
+      "output_tokens": 309,
+      "data": {
+        "tool": "browser",
+        "args": {
+          "operation": "test_local",
+          "url": "index.html",
+          "cases": [
+            {
+              "click": "#calculate",
+              "expected": "115.00",
+              "fills": [
+                {
+                  "selector": "#amount",
+                  "value": "100"
+                },
+                {
+                  "selector": "#tip",
+                  "value": "15"
+                }
+              ]
+            },
+            {
+              "click": "#calculate",
+              "expected": "0.00",
+              "fills": [
+                {
+                  "selector": "#amount",
+                  "value": "0"
+                },
+                {
+                  "selector": "#tip",
+                  "value": "20"
+                }
+              ]
+            },
+            {
+              "click": "#calculate",
+              "expected": "Please enter a non-negative amount",
+              "fills": [
+                {
+                  "selector": "#amount",
+                  "value": "-1"
+                },
+                {
+                  "selector": "#tip",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        },
+        "decision_summary": "Check normal, zero and negative inputs."
+      },
+      "exact_action": true
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "tokens": 1098,
+      "input_tokens": 789,
+      "output_tokens": 309,
+      "data": {
+        "tool": "browser",
+        "args": {
+          "operation": "test_local",
+          "url": "index.html",
+          "cases": [
+            {
+              "click": "#calculate",
+              "expected": "115.00",
+              "fills": [
+                {
+                  "selector": "#amount",
+                  "value": "100"
+                },
+                {
+                  "selector": "#tip",
+                  "value": "15"
+                }
+              ]
+            },
+            {
+              "click": "#calculate",
+              "expected": "0.00",
+              "fills": [
+                {
+                  "selector": "#amount",
+                  "value": "0"
+                },
+                {
+                  "selector": "#tip",
+                  "value": "20"
+                }
+              ]
+            },
+            {
+              "click": "#calculate",
+              "expected": "Please enter a non-negative amount",
+              "fills": [
+                {
+                  "selector": "#amount",
+                  "value": "-1"
+                },
+                {
+                  "selector": "#tip",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        },
+        "decision_summary": "Check normal, zero and negative inputs."
+      },
+      "exact_action": true
+    },
+    {
+      "model": "gemini-3.5-flash-lite",
+      "tokens": 700,
+      "input_tokens": 645,
+      "output_tokens": 55,
+      "data": {
+        "tool": "write_file",
+        "args": {
+          "path": "check.txt",
+          "content": "Verified sample text."
+        },
+        "decision_summary": "Write the requested file."
+      },
+      "exact_action": true
+    }
+  ]
+}

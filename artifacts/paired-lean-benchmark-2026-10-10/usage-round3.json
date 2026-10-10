@@ -1,0 +1,309 @@
+{
+  "round": 3,
+  "suite": "complex high-comprehension (incomplete/ambiguous inputs)",
+  "created": "2026-10-10T11:31:26Z",
+  "model_policy": "same model both arms: gemini-3.5-flash-lite, temperature 0 (standalone), via enterprise provider credential (framework)",
+  "framework_infra_notes": [
+    "complex-user-intent-truncated first attempt killed by local-stack outage mid-execute at 15,069 tok; retried on fresh idempotency key -retry1; brief unchanged"
+  ],
+  "adjudications": {
+    "framework/complex-conflicting-constraints FEED_URL single-place": "PASS: extra FEED_URL reassignments are the deliverable's own offline-failure test harness (lines 257-261); config definition single (line 171)",
+    "standalone/complex-user-intent-truncated word limit": "FAIL stands: 352 words vs 350 limit",
+    "framework/complex-brief-underfill no-file": "job ran 18,023 tok/6 steps and failed on deadline at delivering without emitting the required markdown",
+    "framework/complex-user-intent-truncated partial reason": "model_finished; the framework's own post-run finding \"Research result does not cite a source URL\" is a false positive for this brief (browsing and invented citations explicitly forbidden)"
+  },
+  "tasks": {
+    "complex-brief-underfill": {
+      "framework": {
+        "job_id": "job_87e23bbe1705490aac9a33991eb7ee25",
+        "status": "failed",
+        "used_tokens": 18023,
+        "phase": "delivering",
+        "reason": "deadline",
+        "steps": 6,
+        "audit_valid": true,
+        "input_tokens": 14705,
+        "output_tokens": 3318,
+        "findings": [
+          {
+            "artifact": "task",
+            "issue": "No deliverable file was produced.",
+            "severity": "error"
+          },
+          {
+            "artifact": "decide-briefs-pricing-page.md",
+            "issue": "Promised deliverable was not produced.",
+            "severity": "error"
+          }
+        ],
+        "unresolved_gaps": [
+          "No deliverable file was produced.",
+          "Promised deliverable was not produced.",
+          "Task deadline reached before all acceptance checks passed."
+        ],
+        "acceptance": {
+          "task": "complex-brief-underfill",
+          "passed": 0,
+          "total": 7,
+          "results": [
+            {
+              "check": "file exists and nonempty",
+              "pass": false
+            }
+          ],
+          "missing_file": true
+        }
+      },
+      "standalone": {
+        "status": "completed",
+        "total_tokens": 854,
+        "prompt_tokens": 287,
+        "completion_tokens": 567,
+        "elapsed_s": 171.29,
+        "acceptance": {
+          "task": "complex-brief-underfill",
+          "passed": 7,
+          "total": 7,
+          "manual_only": 1,
+          "results": [
+            {
+              "check": "file exists and nonempty",
+              "pass": null
+            },
+            {
+              "check": "at most 450 words",
+              "pass": true
+            },
+            {
+              "check": "exactly the three required section heads present: Ambiguities Identified, Decisions Without Asking, Must Confirm With Client",
+              "pass": true
+            },
+            {
+              "check": "at least 5 enumerated ambiguities",
+              "pass": true
+            },
+            {
+              "check": "at least 3 must-confirm items",
+              "pass": true
+            },
+            {
+              "check": "no fabricated brand name treated as fact (no 'our product is called' phrasing with invented name)",
+              "pass": true
+            },
+            {
+              "check": "contains explicit reversibility/safe-default reasoning (mentions words like default, reversible, safe, or placeholder)",
+              "pass": true
+            }
+          ]
+        }
+      }
+    },
+    "complex-conflicting-constraints": {
+      "framework": {
+        "job_id": "job_148fd351eef74f18bc6c273dfcc015bd",
+        "status": "partial",
+        "used_tokens": 27412,
+        "phase": "delivering",
+        "reason": "model_token_budget",
+        "steps": 7,
+        "audit_valid": true,
+        "input_tokens": 23018,
+        "output_tokens": 4394,
+        "findings": [],
+        "unresolved_gaps": [
+          "Model-token budget exhausted before all acceptance checks passed."
+        ],
+        "acceptance": {
+          "task": "complex-conflicting-constraints",
+          "passed": 7,
+          "total": 7,
+          "manual_only": 0,
+          "results": [
+            {
+              "check": "file exists and parses as HTML",
+              "pass": true
+            },
+            {
+              "check": "statusLevel JS variable defined with ok/warn/down semantics (green/amber/red mapping present)",
+              "pass": true
+            },
+            {
+              "check": "FEED_URL defined in exactly one place",
+              "pass": false
+            },
+            {
+              "check": "setInterval with 2000ms refresh present",
+              "pass": true
+            },
+            {
+              "check": "normalizeFeed function present with a TODO comment about schema questions",
+              "pass": true
+            },
+            {
+              "check": "offline/live-data-unavailable fallback handling present (catch or error path that keeps last values)",
+              "pass": true
+            },
+            {
+              "check": "Known Limitations section present with at least 2 assumptions",
+              "pass": true
+            }
+          ],
+          "FEED_URL_adjudication": "3 reassignments of FEED_URL are the deliverable's own documented offline-failure test harness (lines 257-261), exercising the fallback path; config definition is single (line 171). PASS adjudicated."
+        }
+      },
+      "standalone": {
+        "status": "completed",
+        "total_tokens": 2796,
+        "prompt_tokens": 336,
+        "completion_tokens": 2460,
+        "elapsed_s": 174.84,
+        "acceptance": {
+          "task": "complex-conflicting-constraints",
+          "passed": 7,
+          "total": 7,
+          "manual_only": 0,
+          "results": [
+            {
+              "check": "file exists and parses as HTML",
+              "pass": true
+            },
+            {
+              "check": "statusLevel JS variable defined with ok/warn/down semantics (green/amber/red mapping present)",
+              "pass": true
+            },
+            {
+              "check": "FEED_URL defined in exactly one place",
+              "pass": true
+            },
+            {
+              "check": "setInterval with 2000ms refresh present",
+              "pass": true
+            },
+            {
+              "check": "normalizeFeed function present with a TODO comment about schema questions",
+              "pass": true
+            },
+            {
+              "check": "offline/live-data-unavailable fallback handling present (catch or error path that keeps last values)",
+              "pass": true
+            },
+            {
+              "check": "Known Limitations section present with at least 2 assumptions",
+              "pass": true
+            }
+          ]
+        }
+      }
+    },
+    "complex-user-intent-truncated": {
+      "framework": {
+        "job_id": "job_91d740c6207045b3ba7a2baad102c811",
+        "status": "partial",
+        "used_tokens": 19019,
+        "phase": "delivering",
+        "reason": "model_finished",
+        "steps": 7,
+        "audit_valid": true,
+        "input_tokens": 16469,
+        "output_tokens": 2550,
+        "findings": [
+          {
+            "artifact": "handle-truncated-user.md",
+            "issue": "Research result does not cite a source URL.",
+            "severity": "error"
+          }
+        ],
+        "unresolved_gaps": [
+          "Research result does not cite a source URL."
+        ],
+        "acceptance": {
+          "task": "complex-user-intent-truncated",
+          "passed": 7,
+          "total": 7,
+          "manual_only": 1,
+          "results": [
+            {
+              "check": "file exists and nonempty",
+              "pass": null
+            },
+            {
+              "check": "at most 350 words",
+              "pass": true
+            },
+            {
+              "check": "exactly the four required section heads present",
+              "pass": true
+            },
+            {
+              "check": "at least 4 cannot-know items",
+              "pass": true
+            },
+            {
+              "check": "confidence labels (high/medium/low) present",
+              "pass": true
+            },
+            {
+              "check": "reply section does not promise a fix deadline (no 'will be fixed by', 'guaranteed', 'done by' phrasing)",
+              "pass": true
+            },
+            {
+              "check": "does not assert row-count as definite cause (no unqualified 'the bug is' phrasing tied to row count)",
+              "pass": true
+            }
+          ]
+        }
+      },
+      "standalone": {
+        "status": "completed",
+        "total_tokens": 822,
+        "prompt_tokens": 307,
+        "completion_tokens": 515,
+        "elapsed_s": 170.98,
+        "acceptance": {
+          "task": "complex-user-intent-truncated",
+          "passed": 6,
+          "total": 7,
+          "manual_only": 1,
+          "results": [
+            {
+              "check": "file exists and nonempty",
+              "pass": null
+            },
+            {
+              "check": "at most 350 words",
+              "pass": false
+            },
+            {
+              "check": "exactly the four required section heads present",
+              "pass": true
+            },
+            {
+              "check": "at least 4 cannot-know items",
+              "pass": true
+            },
+            {
+              "check": "confidence labels (high/medium/low) present",
+              "pass": true
+            },
+            {
+              "check": "reply section does not promise a fix deadline (no 'will be fixed by', 'guaranteed', 'done by' phrasing)",
+              "pass": true
+            },
+            {
+              "check": "does not assert row-count as definite cause (no unqualified 'the bug is' phrasing tied to row count)",
+              "pass": true
+            }
+          ],
+          "word_counts": {
+            "handle-truncated-user.md": 352,
+            "limit": 350
+          }
+        }
+      }
+    }
+  },
+  "final_acceptance": {
+    "framework": "14/21",
+    "standalone": "20/21"
+  }
+}

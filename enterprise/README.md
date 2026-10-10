@@ -16,7 +16,26 @@ npm run validate
 npm run dev
 ```
 
-Local preview `http://127.0.0.1:8787` uses a development identity and ephemeral storage.
+Local preview `http://127.0.0.1:8787` uses a fixed development identity and persistent
+SQLite/artifact storage. Default Windows state root:
+`%LOCALAPPDATA%\AEON\localhost-private` (server files in `server/`). Restarting keeps
+tasks, enrolled workers, audit records and artifact downloads. This local workspace
+is separate from the deployed Site and its production worker.
+
+`AEON_LOCAL_STATE_DIR` selects another state root; `AEON_LOCAL_PORT` selects another
+port. Command options override those settings:
+
+```powershell
+npm run dev -- --port 8788 --state-dir C:\AEON\local-test
+npm run dev -- --ephemeral
+```
+
+The optional ephemeral mode discards tasks/artifacts on exit. Local requests require
+loopback Host and same-origin browser access. The server strips supplied Site identity
+headers; all browser users on this computer operate as the development owner. This
+is not multi-user authentication. `GET /api/local/runtime` reports local mode and
+persistence without credentials or local paths. Keep the state directory private.
+
 Never publish `scripts/dev.mjs`. Production entrypoint: `dist/server/index.js`.
 Production requires Sites' authenticated dispatcher, D1 and R2. Do not expose this
 Worker on a generic platform that accepts arbitrary `oai-authenticated-user-*` headers.

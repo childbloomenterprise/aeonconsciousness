@@ -134,6 +134,98 @@ class PolicyTests(unittest.TestCase):
 
 
 class LedgerTests(unittest.TestCase):
+    def test_control_replacement_waits_for_active_reader_then_delivers_stop(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ledger = EventLedger(Path(directory))
+            ledger.write_control('run')
+            reader_open = threading.Event()
+            release_reader = threading.Event()
+            writer_started = threading.Event()
+            writer_done = threading.Event()
+            errors = []
+            commands = []
+            original_read = Path.read_text
+
+            def held_read(path, *args, **kwargs):
+                if path != ledger.control_path:
+                    return original_read(path, *args, **kwargs)
+                with path.open('r', encoding='utf-8') as handle:
+                    reader_open.set()
+                    if not release_reader.wait(2):
+                        raise TimeoutError('Control reader was not released.')
+                    return handle.read()
+
+            def read():
+                try:
+                    commands.append(ledger.read_control())
+                except Exception as error:
+                    errors.append(error)
+
+            def write():
+                writer_started.set()
+                try:
+                    ledger.write_control('stop')
+                except Exception as error:
+                    errors.append(error)
+                finally:
+                    writer_done.set()
+
+            reader = threading.Thread(target=read)
+            writer = threading.Thread(target=write)
+            with patch.object(Path, 'read_text', held_read):
+                reader.start()
+                try:
+                    self.assertTrue(reader_open.wait(2))
+                    writer.start()
+                    self.assertTrue(writer_started.wait(2))
+                    self.assertFalse(writer_done.wait(0.05), 'Replacement raced an active reader.')
+                finally:
+                    release_reader.set()
+                    reader.join(timeout=2)
+                    if writer.ident is not None:
+                        writer.join(timeout=2)
+            self.assertFalse(reader.is_alive())
+            self.assertFalse(writer.is_alive())
+            self.assertEqual(errors, [])
+            self.assertEqual(commands, ['run'])
+            self.assertEqual(ledger.read_control(), 'stop')
+
+    def test_control_replacement_retries_windows_reader_conflict_and_cleans_temporary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ledger = EventLedger(Path(directory))
+            ledger.write_control('run')
+            conflict = PermissionError('Windows reader prevents replacement')
+            conflict.winerror = 5
+            replace = Path.replace
+            attempts = []
+
+            def transient(path, target):
+                attempts.append(path)
+                if len(attempts) == 1:
+                    raise conflict
+                return replace(path, target)
+
+            with patch.object(Path, 'replace', transient), patch('aeon_world.ledger.time.sleep') as wait:
+                ledger.write_control('stop')
+            self.assertEqual(len(attempts), 2)
+            wait.assert_called_once_with(0.01)
+            self.assertEqual(ledger.read_control(), 'stop')
+            self.assertEqual(list(Path(directory).glob('.control-*.tmp')), [])
+
+    def test_control_replacement_permanent_conflict_is_bounded_and_preserves_previous_command(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ledger = EventLedger(Path(directory))
+            ledger.write_control('run')
+            conflict = PermissionError('Windows reader prevents replacement')
+            conflict.winerror = 32
+            with patch.object(Path, 'replace', side_effect=conflict) as replace, patch('aeon_world.ledger.time.sleep') as wait:
+                with self.assertRaises(PermissionError):
+                    ledger.write_control('stop')
+            self.assertEqual(replace.call_count, 6)
+            self.assertEqual(wait.call_count, 5)
+            self.assertEqual(ledger.read_control(), 'run')
+            self.assertEqual(list(Path(directory).glob('.control-*.tmp')), [])
+
     def test_hash_chain_detects_tampering(self):
         with tempfile.TemporaryDirectory() as directory:
             ledger = EventLedger(Path(directory))

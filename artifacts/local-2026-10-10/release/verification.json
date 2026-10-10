@@ -1,0 +1,12 @@
+{
+  "version": "0.4.0",
+  "archive": "C:\\Users\\vaish\\OneDrive\\Documents\\ChatGPT\\AEON 1\\artifacts\\local-2026-10-10\\release\\aeon-source-0.4.0.zip",
+  "sha256": "41a9becf0c4f0c200f2df00e2ea4ad3adc4731e9b2d52f77b200b97758e654cb",
+  "files": 181,
+  "configured_credential_scan": "passed",
+  "staged_credential_scan": {
+    "files": 69,
+    "known_private_values": 4,
+    "passed": true
+  }
+}

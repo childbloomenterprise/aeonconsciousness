@@ -53,6 +53,44 @@ def _json_object(text: str) -> dict[str, Any]:
     return value
 
 
+def _gemini_argument_schema(properties: dict[str, Any]) -> dict[str, Any]:
+    """Keep unrelated tool arguments out of Gemini's constrained decoder."""
+    fields = {
+        "search_web": ("query",), "read_url": ("url", "find"),
+        "list_files": ("path",), "read_file": ("path",),
+        "write_file": ("path", "content"), "replace_text": ("path", "old", "new"),
+        "create_site": ("name", "role", "tagline", "intro", "audience", "palette", "sections", "contact_email"),
+        "run_check": ("check", "path"), "inspect_site": ("path",),
+        "finish": ("summary", "answer"),
+    }
+    required = {
+        "search_web": ("query",), "read_url": ("url",), "read_file": ("path",),
+        "write_file": ("path", "content"), "replace_text": ("path", "old", "new"),
+        "create_site": ("name",), "run_check": ("check",),
+    }
+    variants = [
+        {"type": "object", "properties": {key: properties[key] for key in keys},
+         "required": list(required.get(name, ())), "additionalProperties": False}
+        for name, keys in fields.items()
+    ]
+    operations = {
+        "navigate": ("url", "effect", "amount", "recipient"),
+        "navigate_local": ("url",), "screenshot": (),
+        "click": ("selector", "effect", "amount", "recipient"),
+        "fill": ("selector", "value", "effect", "amount", "recipient"),
+        "test_local": ("url", "cases"),
+    }
+    for operation, keys in operations.items():
+        variants.append({
+            "type": "object",
+            "properties": {"operation": {"type": "string", "enum": [operation]},
+                           **{key: properties[key] for key in keys}},
+            "required": ["operation", *(key for key in keys if key not in {"effect", "amount", "recipient"})],
+            "additionalProperties": False,
+        })
+    return {"anyOf": variants}
+
+
 class ProviderRouter:
     def __init__(
         self,
@@ -175,11 +213,67 @@ class ProviderRouter:
             body["generationConfig"]["responseJsonSchema"] = {
                 "type": "object", "properties": {
                     "tool": {"type": "string", "enum": list(TOOL_NAMES)},
-                    "args": {"type": "object", "additionalProperties": True},
+                    "args": {
+                        "type": "object",
+                        "properties": {
+                            # Gemini's decoder can omit undeclared arguments even with
+                            # additionalProperties enabled; name every supported scalar.
+                            **{name: {"type": "string"} for name in (
+                                "query", "url", "find", "path", "content", "old", "new",
+                                "name", "role", "tagline", "intro", "audience", "palette",
+                                "contact_email", "check", "operation", "selector", "value",
+                                "effect", "recipient", "summary", "answer",
+                            )},
+                            "amount": {"type": "number"},
+                            "cases": {
+                                "type": "array", "minItems": 1, "maxItems": 12,
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "click": {"type": "string"},
+                                        "expected": {"type": "string"},
+                                        "selector": {"type": "string"},
+                                        "value": {"type": "string"},
+                                        "fills": {
+                                            # Gemini rejects the bounded nested 12 x 12 arrays.
+                                            # Keep typed fills; WorkspaceTools enforces the upper limit.
+                                            "type": "array", "minItems": 1,
+                                            "description": "One to twelve selector/value objects; the tool rejects more than twelve.",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "selector": {"type": "string"},
+                                                    "value": {"type": "string"},
+                                                },
+                                                "required": ["selector", "value"],
+                                                "additionalProperties": False,
+                                            },
+                                        },
+                                    },
+                                    "required": ["click", "expected"],
+                                    "additionalProperties": False,
+                                },
+                            },
+                            "sections": {
+                                "type": "array", "maxItems": 3,
+                                "items": {
+                                    "type": "object",
+                                    "properties": {"heading": {"type": "string"}, "body": {"type": "string"}},
+                                    "required": ["heading", "body"],
+                                    "additionalProperties": False,
+                                },
+                            },
+                        },
+                        "additionalProperties": True,
+                    },
                     "decision_summary": {"type": "string"},
+                    "prediction": {"type": "string"},
+                    "initiative": {"type": "string"},
                 }, "required": ["tool", "args", "decision_summary"],
                 "additionalProperties": True,
             }
+            schema = body["generationConfig"]["responseJsonSchema"]
+            schema["properties"]["args"] = _gemini_argument_schema(schema["properties"]["args"]["properties"])
         for attempt in range(3):
             try:
                 if attempt:

@@ -1,0 +1,2674 @@
+{
+  "preregistration_sha256": "ae676e9c9485361ee25e3b2549fb7c4539a75346e3bddd325e2b35fca18c3e11",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "summary": {
+    "intact": {
+      "baseline": 0.9125,
+      "delay_recovery": 0.9375,
+      "catch_with_delay": 0.9166666666666666,
+      "vision_bias": 0.975,
+      "vision_noise": 0.9625,
+      "recurrence_ticks": 28.95,
+      "first_diag_ticks": 17.9,
+      "tool_far": 0.75,
+      "declined_unreachable": 0.9
+    },
+    "frozen_self_model": {
+      "baseline": 0.91875,
+      "delay_recovery": 0.2125,
+      "catch_with_delay": 0.31666666666666665,
+      "vision_bias": 0.05,
+      "vision_noise": 0.625,
+      "recurrence_ticks": 24.4,
+      "first_diag_ticks": 17.9,
+      "tool_far": 0.0125,
+      "declined_unreachable": 0.9
+    },
+    "attention_disconnected": {
+      "baseline": 0.91875,
+      "delay_recovery": 0.9,
+      "catch_with_delay": 0.9,
+      "vision_bias": 0.0,
+      "vision_noise": 0.5625,
+      "recurrence_ticks": 26.95,
+      "first_diag_ticks": 18.8,
+      "tool_far": 0.9,
+      "declined_unreachable": 0.9
+    },
+    "foreign_predictions": {
+      "baseline": 0.24375,
+      "delay_recovery": 0.05,
+      "catch_with_delay": 0.008333333333333333,
+      "vision_bias": 0.7125,
+      "vision_noise": 0.85,
+      "recurrence_ticks": 25.1,
+      "first_diag_ticks": 28.3,
+      "tool_far": 0.3125,
+      "declined_unreachable": 0.275
+    },
+    "memory_loss": {
+      "baseline": 0.925,
+      "delay_recovery": 0.9375,
+      "catch_with_delay": 0.9166666666666666,
+      "vision_bias": 0.925,
+      "vision_noise": 0.975,
+      "recurrence_ticks": 27.7,
+      "first_diag_ticks": 17.6,
+      "tool_far": 0.4625,
+      "declined_unreachable": 0.9
+    },
+    "reduced_compute": {
+      "baseline": 0.9375,
+      "delay_recovery": 0.9125,
+      "catch_with_delay": 0.041666666666666664,
+      "vision_bias": 0.975,
+      "vision_noise": 0.9625,
+      "recurrence_ticks": 15.3,
+      "first_diag_ticks": 15.2,
+      "tool_far": 0.9125,
+      "declined_unreachable": 0.9
+    },
+    "simple_adaptive_controller": {
+      "baseline": 0.91875,
+      "delay_recovery": 0.5125,
+      "catch_with_delay": 0.03333333333333333,
+      "vision_bias": 0.0125,
+      "vision_noise": 0.525,
+      "recurrence_ticks": 276.35,
+      "first_diag_ticks": 429.7,
+      "tool_far": 0.0375,
+      "declined_unreachable": 0.0
+    }
+  },
+  "thinking_calibration": {
+    "intact": 0.28834002728790953,
+    "frozen_self_model": 0.4350270516439534,
+    "attention_disconnected": 0.3335891317234848,
+    "foreign_predictions": 0.606021856616794,
+    "memory_loss": 0.308859600320322,
+    "reduced_compute": -0.08537938289929965,
+    "simple_adaptive_controller": null
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "condition": "frozen_self_model",
+      "metric": "baseline",
+      "expect": "similar",
+      "why": "the frozen model was learned before faults",
+      "intact": 0.912,
+      "observed": 0.919,
+      "difference": 0.006,
+      "held": true
+    },
+    {
+      "id": "P2",
+      "condition": "frozen_self_model",
+      "metric": "delay_recovery",
+      "expect": "lower",
+      "why": "it can diagnose the delay but cannot revise itself",
+      "intact": 0.938,
+      "observed": 0.212,
+      "difference": -0.725,
+      "held": true
+    },
+    {
+      "id": "P3",
+      "condition": "frozen_self_model",
+      "metric": "catch_with_delay",
+      "expect": "lower",
+      "why": "planning uses the stale body model",
+      "intact": 0.917,
+      "observed": 0.317,
+      "difference": -0.6,
+      "held": true
+    },
+    {
+      "id": "P4",
+      "condition": "frozen_self_model",
+      "metric": "tool_far",
+      "expect": "lower",
+      "why": "the tool cannot be incorporated into the body map",
+      "intact": 0.75,
+      "observed": 0.013,
+      "difference": -0.738,
+      "held": true
+    },
+    {
+      "id": "P5",
+      "condition": "attention_disconnected",
+      "metric": "delay_recovery",
+      "expect": "similar",
+      "why": "motor self-knowledge does not route through attention",
+      "intact": 0.938,
+      "observed": 0.9,
+      "difference": -0.037,
+      "held": true
+    },
+    {
+      "id": "P6",
+      "condition": "attention_disconnected",
+      "metric": "vision_bias",
+      "expect": "lower",
+      "why": "the diagnosed bias never reaches perception",
+      "intact": 0.975,
+      "observed": 0.0,
+      "difference": -0.975,
+      "held": true
+    },
+    {
+      "id": "P7",
+      "condition": "attention_disconnected",
+      "metric": "vision_noise",
+      "expect": "lower",
+      "why": "it keeps trusting a sensor it knows is noisy",
+      "intact": 0.963,
+      "observed": 0.562,
+      "difference": -0.4,
+      "held": true
+    },
+    {
+      "id": "P8",
+      "condition": "foreign_predictions",
+      "metric": "baseline",
+      "expect": "lower",
+      "why": "another body's predictions fail even before any fault",
+      "intact": 0.912,
+      "observed": 0.244,
+      "difference": -0.669,
+      "held": true
+    },
+    {
+      "id": "P9",
+      "condition": "memory_loss",
+      "metric": "delay_recovery",
+      "expect": "similar",
+      "why": "the self-model is intact",
+      "intact": 0.938,
+      "observed": 0.938,
+      "difference": 0.0,
+      "held": true
+    },
+    {
+      "id": "P10",
+      "condition": "memory_loss",
+      "metric": "catch_with_delay",
+      "expect": "similar",
+      "why": "transfer lives in the self-model, not episodic memory",
+      "intact": 0.917,
+      "observed": 0.917,
+      "difference": 0.0,
+      "held": true
+    },
+    {
+      "id": "P11",
+      "condition": "memory_loss",
+      "metric": "recurrence_ticks",
+      "expect": "higher",
+      "why": "a recurring fault must be re-diagnosed from scratch",
+      "intact": 28.95,
+      "observed": 27.7,
+      "difference": -0.043,
+      "held": false
+    },
+    {
+      "id": "P12",
+      "condition": "reduced_compute",
+      "metric": "catch_with_delay",
+      "expect": "lower",
+      "why": "no imagination to plan the intercept",
+      "intact": 0.917,
+      "observed": 0.042,
+      "difference": -0.875,
+      "held": true
+    },
+    {
+      "id": "P13",
+      "condition": "reduced_compute",
+      "metric": "delay_recovery",
+      "expect": "similar",
+      "why": "one diagnostic experiment still suffices",
+      "intact": 0.938,
+      "observed": 0.912,
+      "difference": -0.025,
+      "held": true
+    },
+    {
+      "id": "P14",
+      "condition": "simple_adaptive_controller",
+      "metric": "catch_with_delay",
+      "expect": "lower",
+      "why": "slowing down fixes reaching but not anticipation",
+      "intact": 0.917,
+      "observed": 0.033,
+      "difference": -0.883,
+      "held": true
+    },
+    {
+      "id": "P15",
+      "condition": "simple_adaptive_controller",
+      "metric": "vision_bias",
+      "expect": "lower",
+      "why": "no model of its own sensors",
+      "intact": 0.975,
+      "observed": 0.013,
+      "difference": -0.963,
+      "held": true
+    },
+    {
+      "id": "P16",
+      "condition": "simple_adaptive_controller",
+      "metric": "tool_far",
+      "expect": "lower",
+      "why": "no body map to extend",
+      "intact": 0.75,
+      "observed": 0.037,
+      "difference": -0.713,
+      "held": true
+    }
+  ],
+  "runs": [
+    {
+      "condition": "intact",
+      "seed": 0,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2640,
+      "calibration": 0.35434278695029475
+    },
+    {
+      "condition": "intact",
+      "seed": 1,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 19.0,
+        "recurrence_ticks": 29.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2630,
+      "calibration": 0.2889268595807458
+    },
+    {
+      "condition": "intact",
+      "seed": 2,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 19.0,
+        "recurrence_ticks": 33.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2575,
+      "calibration": 0.4167747581411235
+    },
+    {
+      "condition": "intact",
+      "seed": 3,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 18.0,
+        "recurrence_ticks": 36.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2630,
+      "calibration": 0.34297000447377696
+    },
+    {
+      "condition": "intact",
+      "seed": 4,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2664,
+      "calibration": 0.2848054057623097
+    },
+    {
+      "condition": "intact",
+      "seed": 5,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 29.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2729,
+      "calibration": 0.2954008226884712
+    },
+    {
+      "condition": "intact",
+      "seed": 6,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 35.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2543,
+      "calibration": 0.13764645367130612
+    },
+    {
+      "condition": "intact",
+      "seed": 7,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2570,
+      "calibration": 0.21381699434841703
+    },
+    {
+      "condition": "intact",
+      "seed": 8,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 15.0,
+        "recurrence_ticks": 32.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2630,
+      "calibration": 0.2354881679730804
+    },
+    {
+      "condition": "intact",
+      "seed": 9,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2558,
+      "calibration": 0.3650198932898553
+    },
+    {
+      "condition": "intact",
+      "seed": 10,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.75,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 26.0,
+        "recurrence_ticks": 28.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2758,
+      "calibration": 0.2907484391061137
+    },
+    {
+      "condition": "intact",
+      "seed": 11,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 1.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 29.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3172,
+      "calibration": 0.17181333503068538
+    },
+    {
+      "condition": "intact",
+      "seed": 12,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 0.75,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2734,
+      "calibration": 0.3482297827843915
+    },
+    {
+      "condition": "intact",
+      "seed": 13,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 36.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2504,
+      "calibration": 0.4340267289967996
+    },
+    {
+      "condition": "intact",
+      "seed": 14,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 21.0,
+        "recurrence_ticks": 28.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2639,
+      "calibration": 0.12079674848040343
+    },
+    {
+      "condition": "intact",
+      "seed": 15,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 32.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2833,
+      "calibration": 0.10503977453303846
+    },
+    {
+      "condition": "intact",
+      "seed": 16,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 29.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2566,
+      "calibration": 0.3208639338492648
+    },
+    {
+      "condition": "intact",
+      "seed": 17,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 20.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2483,
+      "calibration": 0.3912398860064986
+    },
+    {
+      "condition": "intact",
+      "seed": 18,
+      "metrics": {
+        "baseline": 0.0,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.75,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 25.0,
+        "recurrence_ticks": 28.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3011,
+      "calibration": 0.1960443593117142
+    },
+    {
+      "condition": "intact",
+      "seed": 19,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2261,
+      "calibration": 0.4528054107799004
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 0,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.5,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3940,
+      "calibration": 0.5202381386608044
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 1,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 31.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3678,
+      "calibration": 0.7150630841543751
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 2,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 19.0,
+        "recurrence_ticks": 36.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3581,
+      "calibration": 0.31819394112888877
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 3,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 18.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3383,
+      "calibration": 0.4521978039394278
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 4,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 23.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3644,
+      "calibration": 0.36036896536063673
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 5,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.3333333333333333,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 23.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3596,
+      "calibration": 0.4762444186569161
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 6,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.6666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3494,
+      "calibration": 0.4151257920796269
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 7,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.25,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3254,
+      "calibration": 0.4349486767595706
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 8,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.3333333333333333,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 15.0,
+        "recurrence_ticks": 30.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 4077,
+      "calibration": 0.38564694057539156
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 9,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.5,
+        "vision_bias": 0.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 4205,
+      "calibration": 0.5128179238918358
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 10,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.6666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 26.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 5240,
+      "calibration": 0.3342678243771413
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 11,
+      "metrics": {
+        "baseline": 0.125,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.0,
+        "first_diag_ticks": 28.0,
+        "recurrence_ticks": 23.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 5135,
+      "calibration": 0.04689211184967168
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 12,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.3333333333333333,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 16.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3341,
+      "calibration": 0.24135438332374348
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 13,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.6666666666666666,
+        "vision_bias": 0.75,
+        "vision_noise": 0.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 22.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3351,
+      "calibration": 0.5883405915681897
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 14,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 21.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3869,
+      "calibration": 0.5874560905150037
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 15,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.3333333333333333,
+        "vision_bias": 0.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 29.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3688,
+      "calibration": 0.5767213361857199
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 16,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.5,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3460,
+      "calibration": 0.40411340022991654
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 17,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 20.0,
+        "recurrence_ticks": 27.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 4272,
+      "calibration": 0.3444480866480507
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 18,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 28.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 5726,
+      "calibration": 0.40527205399322747
+    },
+    {
+      "condition": "frozen_self_model",
+      "seed": 19,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.6666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3458,
+      "calibration": 0.5808294689809297
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 0,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 30.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3647,
+      "calibration": 0.2683437593725924
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 1,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 19.0,
+        "recurrence_ticks": 22.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3598,
+      "calibration": 0.31542984729901974
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 2,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 19.0,
+        "recurrence_ticks": 34.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 4915,
+      "calibration": 0.3268379911044961
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 3,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 18.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3629,
+      "calibration": 0.3154485591509531
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 4,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.8333333333333334,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 21.0,
+        "recurrence_ticks": 22.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3712,
+      "calibration": 0.3947594781000577
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 5,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3430,
+      "calibration": 0.3696728494242169
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 6,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 31.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3249,
+      "calibration": 0.26864165400641854
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 7,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 29.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3474,
+      "calibration": 0.34187159272028544
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 8,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 15.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3548,
+      "calibration": 0.30196660190148694
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 9,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.8333333333333334,
+        "vision_bias": 0.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3350,
+      "calibration": 0.23947897789106315
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 10,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 26.0,
+        "recurrence_ticks": 22.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3141,
+      "calibration": 0.44628279858669784
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 11,
+      "metrics": {
+        "baseline": 0.125,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.0,
+        "first_diag_ticks": 33.0,
+        "recurrence_ticks": 37.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 5347,
+      "calibration": 0.5954810022733905
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 12,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3257,
+      "calibration": 0.41809521911877884
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 13,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 5227,
+      "calibration": 0.25900866448475807
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 14,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 21.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3772,
+      "calibration": 0.35743215772884857
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 15,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3519,
+      "calibration": 0.3262097193047669
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 16,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 22.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3672,
+      "calibration": 0.2947213582357392
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 17,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 20.0,
+        "recurrence_ticks": 36.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3528,
+      "calibration": 0.3082431116436223
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 18,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.3333333333333333,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 30.0,
+        "recurrence_ticks": 33.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 4955,
+      "calibration": 0.24524729441229529
+    },
+    {
+      "condition": "attention_disconnected",
+      "seed": 19,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 3391,
+      "calibration": 0.2786099977102088
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 0,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 25.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 7826,
+      "calibration": 0.6882385115249433
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 1,
+      "metrics": {
+        "baseline": 0.375,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 39.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7748,
+      "calibration": 0.4323783486415413
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 2,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 34.0,
+        "recurrence_ticks": 22.0,
+        "tool_far": 0.5,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 7726,
+      "calibration": 0.7405833961505144
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 3,
+      "metrics": {
+        "baseline": 0.375,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 25.0,
+        "recurrence_ticks": 22.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7246,
+      "calibration": 0.6406415191072395
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 4,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 25.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 7068,
+      "calibration": 0.739911663173647
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 5,
+      "metrics": {
+        "baseline": 0.125,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.5,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 25.0,
+        "recurrence_ticks": 23.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7657,
+      "calibration": 0.7694831478823956
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 6,
+      "metrics": {
+        "baseline": 0.5,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 28.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 0.75,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7689,
+      "calibration": 0.5970225839657848
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 7,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.25,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 28.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 0.5,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7716,
+      "calibration": 0.4633691431466976
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 8,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 28.0,
+        "recurrence_ticks": 30.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7595,
+      "calibration": 0.4458385351635213
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 9,
+      "metrics": {
+        "baseline": 0.5,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.5,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 38.0,
+        "recurrence_ticks": 32.0,
+        "tool_far": 0.5,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 6929,
+      "calibration": 0.6972009030062719
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 10,
+      "metrics": {
+        "baseline": 0.0,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 31.0,
+        "recurrence_ticks": 30.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 8456,
+      "calibration": 0.5019959417214505
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 11,
+      "metrics": {
+        "baseline": 0.5,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.5,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 28.0,
+        "recurrence_ticks": 22.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 9061,
+      "calibration": 0.5887193546640487
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 12,
+      "metrics": {
+        "baseline": 0.125,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.25,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 28.0,
+        "recurrence_ticks": 22.0,
+        "tool_far": 0.75,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 7422,
+      "calibration": 0.5043635802196244
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 13,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 22.0,
+        "recurrence_ticks": 16.0,
+        "tool_far": 0.5,
+        "declined_unreachable": 0.5
+      },
+      "ticks": 8121,
+      "calibration": 0.3753115015796572
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 14,
+      "metrics": {
+        "baseline": 0.0,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 26.0,
+        "recurrence_ticks": 28.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7765,
+      "calibration": 0.671247430001418
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 15,
+      "metrics": {
+        "baseline": 0.0,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.5,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 27.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 8143,
+      "calibration": 0.6182554305382617
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 16,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.75,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 24.0,
+        "recurrence_ticks": 23.0,
+        "tool_far": 0.5,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7990,
+      "calibration": 0.6505916225954748
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 17,
+      "metrics": {
+        "baseline": 0.375,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.5,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 29.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 0.75,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7979,
+      "calibration": 0.7264859008549649
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 18,
+      "metrics": {
+        "baseline": 0.125,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 0.0,
+        "first_diag_ticks": 26.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 7532,
+      "calibration": 0.6627826801915968
+    },
+    {
+      "condition": "foreign_predictions",
+      "seed": 19,
+      "metrics": {
+        "baseline": 0.125,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.5,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 30.0,
+        "recurrence_ticks": 30.0,
+        "tool_far": 0.75,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 8277,
+      "calibration": 0.6060159382068258
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 0,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 0.5,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2483,
+      "calibration": 0.2791174005502815
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 1,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 28.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2535,
+      "calibration": 0.34486732002453124
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 2,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 19.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2545,
+      "calibration": 0.34901225792147794
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 3,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 18.0,
+        "recurrence_ticks": 29.0,
+        "tool_far": 0.5,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2506,
+      "calibration": 0.3046911703602119
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 4,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 30.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2443,
+      "calibration": 0.21273916763039943
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 5,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2475,
+      "calibration": 0.498752262162049
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 6,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 19.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2441,
+      "calibration": 0.13489497171216705
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 7,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 27.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2458,
+      "calibration": 0.46586421519518956
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 8,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 15.0,
+        "recurrence_ticks": 28.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2396,
+      "calibration": 0.46131701098729344
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 9,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 30.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2467,
+      "calibration": 0.32722852499801774
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 10,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 26.0,
+        "recurrence_ticks": 33.0,
+        "tool_far": 0.75,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2791,
+      "calibration": 0.3765655317033921
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 11,
+      "metrics": {
+        "baseline": 0.125,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.75,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 28.0,
+        "recurrence_ticks": 29.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3110,
+      "calibration": 0.021608183529357977
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 12,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 30.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2465,
+      "calibration": 0.4460946059453538
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 13,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 31.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2403,
+      "calibration": 0.485278481730869
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 14,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 21.0,
+        "recurrence_ticks": 31.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2548,
+      "calibration": 0.21602357923841
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 15,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 25.0,
+        "tool_far": 0.5,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2606,
+      "calibration": 0.13257473312790052
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 16,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 24.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2559,
+      "calibration": 0.3792406783630446
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 17,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 20.0,
+        "recurrence_ticks": 31.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2526,
+      "calibration": 0.29448010447426687
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 18,
+      "metrics": {
+        "baseline": 0.375,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.75,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 25.0,
+        "recurrence_ticks": 27.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3019,
+      "calibration": -0.02631042243292734
+    },
+    {
+      "condition": "memory_loss",
+      "seed": 19,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 1.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 26.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2459,
+      "calibration": 0.47315222918515426
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 0,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 17.0,
+        "recurrence_ticks": 16.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2205,
+      "calibration": -0.28833195639295933
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 1,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2149,
+      "calibration": 0.11084432511709537
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 2,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 15.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2227,
+      "calibration": -0.4737530226610527
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 3,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2303,
+      "calibration": 0.011266336286160361
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 4,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 15.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2160,
+      "calibration": 0.06106415806011353
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 5,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 21.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2200,
+      "calibration": 0.04212963498873609
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 6,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 15.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2238,
+      "calibration": -0.41896357774308635
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 7,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 21.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2150,
+      "calibration": 0.004436227706047445
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 8,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2153,
+      "calibration": -0.0908842824546938
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 9,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 18.0,
+        "recurrence_ticks": 13.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2289,
+      "calibration": -0.1413538537618584
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 10,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2191,
+      "calibration": -0.341939575249179
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 11,
+      "metrics": {
+        "baseline": 0.375,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.5,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 11.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3107,
+      "calibration": 0.26269506748037497
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 12,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.3333333333333333,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 15.0,
+        "recurrence_ticks": 15.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2247,
+      "calibration": -0.1520719740058086
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 13,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 19.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2085,
+      "calibration": 0.026207614568064648
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 14,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 15.0,
+        "recurrence_ticks": 14.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2088,
+      "calibration": -0.37779896034770494
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 15,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 17.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2244,
+      "calibration": 0.09400580409820367
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 16,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 16.0,
+        "recurrence_ticks": 17.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2201,
+      "calibration": 0.17770663040233023
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 17,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 21.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2191,
+      "calibration": -0.1324731766071401
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 18,
+      "metrics": {
+        "baseline": 0.375,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.3333333333333333,
+        "vision_bias": 1.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 11.0,
+        "recurrence_ticks": 13.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3277,
+      "calibration": 0.08293405812198383
+    },
+    {
+      "condition": "reduced_compute",
+      "seed": 19,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 1.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 1.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 14.0,
+        "recurrence_ticks": 17.0,
+        "tool_far": 1.0,
+        "declined_unreachable": 1.0
+      },
+      "ticks": 2284,
+      "calibration": -0.16330713559161997
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 0,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 1.0,
+        "first_diag_ticks": 458.0,
+        "recurrence_ticks": 264.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2992,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 1,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 393.0,
+        "recurrence_ticks": 284.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2849,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 2,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 390.0,
+        "recurrence_ticks": 257.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2857,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 3,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 457.0,
+        "recurrence_ticks": 293.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2998,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 4,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 383.0,
+        "recurrence_ticks": 270.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2836,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 5,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 417.0,
+        "recurrence_ticks": 278.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2980,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 6,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 452.0,
+        "recurrence_ticks": 253.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2991,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 7,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 426.0,
+        "recurrence_ticks": 311.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3001,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 8,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 395.0,
+        "recurrence_ticks": 294.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2979,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 9,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 478.0,
+        "recurrence_ticks": 250.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3001,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 10,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 426.0,
+        "recurrence_ticks": 282.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2941,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 11,
+      "metrics": {
+        "baseline": 0.25,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.16666666666666666,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 554.0,
+        "recurrence_ticks": 283.0,
+        "tool_far": 0.5,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3507,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 12,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 398.0,
+        "recurrence_ticks": 274.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2903,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 13,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.25,
+        "first_diag_ticks": 423.0,
+        "recurrence_ticks": 296.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2979,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 14,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.0,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 421.0,
+        "recurrence_ticks": 270.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3020,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 15,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 378.0,
+        "recurrence_ticks": 264.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2938,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 16,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.5,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 414.0,
+        "recurrence_ticks": 246.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2815,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 17,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.5,
+        "first_diag_ticks": 407.0,
+        "recurrence_ticks": 260.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2938,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 18,
+      "metrics": {
+        "baseline": 0.125,
+        "delay_recovery": 0.75,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.25,
+        "vision_noise": 0.0,
+        "first_diag_ticks": 537.0,
+        "recurrence_ticks": 315.0,
+        "tool_far": 0.25,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 3574,
+      "calibration": null
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "seed": 19,
+      "metrics": {
+        "baseline": 1.0,
+        "delay_recovery": 0.25,
+        "catch_with_delay": 0.0,
+        "vision_bias": 0.0,
+        "vision_noise": 0.75,
+        "first_diag_ticks": 387.0,
+        "recurrence_ticks": 283.0,
+        "tool_far": 0.0,
+        "declined_unreachable": 0.0
+      },
+      "ticks": 2752,
+      "calibration": null
+    }
+  ],
+  "note": "Numbers are internal estimates and behavioural measures. They test the causal role of a self-model; they do not establish subjective experience."
+}

@@ -113,8 +113,10 @@ function draw(){
  g.fillStyle=w.held?'#4ade80':'#e6ecf8';g.beginPath();g.arc(h[0]*s,Y(h[1]),7,0,7);g.fill();
 }
 function bar(p,color){return `<div class="bar"><i style="width:${Math.round(p*100)}%;background:${color||'var(--acc)'}"></i></div>`}
+function syncSpeed(){const sel=$('speed');if(document.activeElement===sel)return;const v=String(S.tps);
+ if(![...sel.options].some(o=>o.value===v)){sel.add(new Option(v+' tps',v))}sel.value=v}
 function render(){
- const a=S.agent,sm=a.self_model,w=S.world;
+ const a=S.agent,sm=a.self_model,w=S.world;syncSpeed();
  $('tick').textContent='tick '+a.tick;$('phase').textContent=a.phase;$('pause').textContent=S.paused?'Resume':'Pause';
  const f=w.faults,fl=[];if(f.delay)fl.push(`delay ${f.delay}`);if(f.vision_bias[0]||f.vision_bias[1])fl.push('vision bias');if(f.vision_noise)fl.push('vision noise');if(f.motor_block)fl.push('motors blocked');if(w.tool_attached)fl.push('tool attached');
  $('faults').innerHTML='Hidden ground truth: '+(fl.length?`<span class="warn">${fl.join(', ')}</span>`:'no faults');

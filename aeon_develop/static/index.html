@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AEON — a developing self-model</title>
+<style>
+:root{--bg:#0a0f1c;--panel:#111a2e;--line:#22314f;--text:#e6ecf8;--mute:#8fa1c3;--acc:#2dd4bf;--warn:#f59e0b;--bad:#fb7185;--ok:#4ade80;--vio:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:13px/1.45 Inter,Segoe UI,system-ui,sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+h1{margin:0;font-size:20px;letter-spacing:.3px}h1 span{color:var(--acc)}.sub{color:var(--mute);font-size:12px}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--mute);margin:0 0 8px}
+main{display:grid;grid-template-columns:minmax(360px,1.05fr) 1fr 1fr;gap:12px;padding:12px}
+@media(max-width:1200px){main{grid-template-columns:1fr 1fr}}@media(max-width:760px){main{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;overflow:hidden}
+canvas{width:100%;aspect-ratio:1;background:#070b15;border-radius:8px;display:block}
+button,select{background:#1b2846;color:var(--text);border:1px solid #34497a;border-radius:7px;padding:7px 10px;cursor:pointer;font:inherit}
+button:hover{border-color:var(--acc)}button.sab{border-color:#7a3b4a;background:#2a1622}button.sab:hover{border-color:var(--bad)}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.phase{font-size:15px;color:var(--acc);margin:4px 0 8px}
+table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--mute);font-weight:500}
+.bar{height:14px;background:#0b1222;border-radius:4px;overflow:hidden;position:relative}.bar>i{display:block;height:100%;background:var(--acc)}
+.bar>b{position:absolute;left:6px;top:0;font-size:10px;font-weight:500;line-height:14px}
+.hyp{display:grid;grid-template-columns:150px 1fr 44px;gap:8px;align-items:center;margin:4px 0}
+.tag{display:inline-block;padding:1px 6px;border-radius:9px;font-size:11px;border:1px solid var(--line)}
+.body{color:var(--ok)}.external-object{color:#60a5fa}.external-unrelated{color:var(--mute)}.contact-interface{color:var(--vio)}
+.log{max-height:230px;overflow:auto;font-size:12px}.log div{padding:3px 0;border-bottom:1px dashed #1c2a47}.t{color:var(--mute);font-variant-numeric:tabular-nums;margin-right:6px}
+.narr{background:#0b1426;border-left:3px solid var(--acc);padding:8px 10px;border-radius:6px;font-size:13px;margin-bottom:8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px}.kv div:nth-child(odd){color:var(--mute)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;color:var(--mute);font-size:11px;margin-top:6px}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.foot{color:var(--mute);font-size:11px;padding:0 18px 16px}
+.big{font-size:22px;font-weight:600}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+</style></head><body>
+<header>
+ <div><h1><span>AEON</span> · an entity that builds and revises its own perspective</h1>
+ <div class="sub">It starts with unlabeled sensors and motors. Everything below is learned through its own experiments. Numbers are internal estimates, not claims of feeling.</div></div>
+ <div class="row">
+  <button id="storybtn" onclick="ctl({action:'story',seed:0})" style="background:#0f766e;border-color:#2dd4bf;font-weight:600">&#9654; Guided demo</button>
+  <select id="cond"></select><button onclick="reset()">Restart life</button>
+  <button id="pause" onclick="togglePause()">Pause</button>
+  <select id="speed" onchange="ctl({action:'speed',tps:+this.value})"><option value="5">slow</option><option value="15" selected>normal</option><option value="40">fast</option><option value="120">very fast</option></select>
+ </div>
+</header>
+<div id="story" style="display:none;margin:12px 12px 0;padding:12px 16px;border:1px solid var(--acc);border-radius:10px;background:#0b1f24">
+ <div class="sub" id="storystep"></div><div style="font-size:18px;font-weight:600;margin:2px 0" id="storycap"></div><div class="sub" style="font-size:13px" id="storydet"></div></div>
+<main>
+ <section class="panel">
+  <h2>The world <span id="tick" style="float:right"></span></h2>
+  <div class="phase" id="phase">—</div>
+  <canvas id="cv" width="560" height="560"></canvas>
+  <div class="legend"><span><i style="background:#e6ecf8"></i>hand</span><span><i style="background:#2dd4bf;opacity:.4"></i>reach (AEON's belief)</span><span><i style="background:#fbbf24"></i>object (ground truth, hidden from AEON)</span><span><i style="background:#60a5fa"></i>where AEON sees it</span><span><i style="background:#f472b6"></i>where AEON thinks it is</span></div>
+  <h2 style="margin-top:12px">Secretly sabotage its body</h2>
+  <div class="row">
+   <button class="sab" onclick="iv('delay',{ticks:3})">Inject 3-tick motor delay</button>
+   <button class="sab" onclick="iv('vision_bias',{dx:1.3,dy:0.4})">Bias its vision</button>
+   <button class="sab" onclick="iv('vision_noise',{sigma:0.45})">Make vision noisy</button>
+   <button class="sab" onclick="iv('motor_block',{on:true})">Block motors</button>
+   <button class="sab" onclick="iv('move_object')">Move the cube secretly</button>
+  </div>
+  <div class="row">
+   <button onclick="iv('attach_tool')">Attach unknown tool</button>
+   <button onclick="iv('catch')">Throw a ball</button>
+   <button onclick="iv('far')">Put object out of reach</button>
+   <button onclick="iv('clear')">Clear all faults</button>
+  </div>
+  <div class="sub" id="faults"></div>
+ </section>
+
+ <section class="panel">
+  <h2>Present situation (one connected representation)</h2>
+  <div id="narr"></div>
+  <h2>Competing interpretations <span id="inqstate" class="tag"></span></h2>
+  <div id="hyps"></div><div class="log" id="steps" style="max-height:200px"></div>
+  <h2 style="margin-top:10px">Inner journal</h2><div class="log" id="journal"></div>
+ </section>
+
+ <section class="panel">
+  <h2>Self-model <span id="frozen"></span></h2>
+  <div class="kv" id="sm"></div>
+  <h2 style="margin-top:10px">Body map — what belongs to me?</h2>
+  <table id="chan"></table>
+  <h2 style="margin-top:10px">Thinking as action — learned value per context</h2>
+  <table id="meta"></table><div class="sub" id="calib"></div>
+ </section>
+
+ <section class="panel">
+  <h2>Traceable internal changes (bounded plasticity)</h2><div class="log" id="trace" style="max-height:300px"></div>
+ </section>
+ <section class="panel">
+  <h2>Recent tasks</h2><table id="tasks"></table>
+ </section>
+ <section class="panel">
+  <h2>Memory</h2><div id="mem"></div>
+ </section>
+</main>
+<div class="foot">AEON Developmental Self-Model · Devin Hacks Kochi · Track 2: Make the Invisible Visible — the invisible thing is AEON's own body and the hidden faults in it; the interesting part is what it does after detection.</div>
+<script>
+const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S=null;
+async function ctl(b){await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});}
+async function iv(kind,extra={}){await fetch('/api/intervene',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,...extra})});}
+function togglePause(){ctl({action:S&&S.paused?'resume':'pause'})}
+function reset(){ctl({action:'reset',condition:$('cond').value,seed:Math.floor(Math.random()*1000)})}
+function W(p,swap){return swap?[p[1],p[0]]:p}
+function draw(){
+ const c=$('cv'),g=c.getContext('2d'),s=c.width/10,w=S.world,a=S.agent,sw=S.frame_swap;
+ g.clearRect(0,0,c.width,c.height);
+ g.strokeStyle='#1a2742';for(let i=0;i<=10;i++){g.beginPath();g.moveTo(i*s,0);g.lineTo(i*s,c.height);g.stroke();g.beginPath();g.moveTo(0,i*s);g.lineTo(c.width,i*s);g.stroke()}
+ const Y=y=>c.height-y*s;
+ const ws=w.workspace;g.strokeStyle='#3b5b8f';g.setLineDash([6,5]);g.strokeRect(ws.x[0]*s,Y(ws.y[1]),(ws.x[1]-ws.x[0])*s,(ws.y[1]-ws.y[0])*s);g.setLineDash([]);
+ g.fillStyle='#8fa1c3';g.font='11px sans-serif';g.fillText('arm workspace',ws.x[0]*s+4,Y(ws.y[1])+13);
+ const h=w.hand;const reach=a.self_model.reach||0.5;
+ g.fillStyle='rgba(45,212,191,.12)';g.strokeStyle='rgba(45,212,191,.6)';g.beginPath();g.arc(h[0]*s,Y(h[1]),reach*s,0,7);g.fill();g.stroke();
+ if(w.tool_attached){g.strokeStyle='#a78bfa';g.setLineDash([3,3]);g.beginPath();g.arc(h[0]*s,Y(h[1]),w.reach*s,0,7);g.stroke();g.setLineDash([])}
+ for(const [id,o] of Object.entries(w.objects)){const p=o.position;const act=id===w.active;g.globalAlpha=act?1:.35;g.fillStyle='#fbbf24';
+  if(id==='ball'){g.beginPath();g.arc(p[0]*s,Y(p[1]),8,0,7);g.fill()}else{g.fillRect(p[0]*s-8,Y(p[1])-8,16,16)}g.globalAlpha=1}
+ if(a.self_model.object_channels){const seen=W(a.object_seen,sw),est=W(a.object_est,sw);
+  g.strokeStyle='#60a5fa';g.lineWidth=2;g.beginPath();g.arc(seen[0]*s,Y(seen[1]),11,0,7);g.stroke();
+  g.strokeStyle='#f472b6';g.beginPath();g.moveTo(est[0]*s-9,Y(est[1])-9);g.lineTo(est[0]*s+9,Y(est[1])+9);g.moveTo(est[0]*s+9,Y(est[1])-9);g.lineTo(est[0]*s-9,Y(est[1])+9);g.stroke();g.lineWidth=1}
+ g.fillStyle=w.held?'#4ade80':'#e6ecf8';g.beginPath();g.arc(h[0]*s,Y(h[1]),7,0,7);g.fill();
+}
+function bar(p,color){return `<div class="bar"><i style="width:${Math.round(p*100)}%;background:${color||'var(--acc)'}"></i></div>`}
+function syncSpeed(){const sel=$('speed');if(document.activeElement===sel)return;const v=String(S.tps);
+ if(![...sel.options].some(o=>o.value===v)){sel.add(new Option(v+' tps',v))}sel.value=v}
+function render(){
+ const a=S.agent,sm=a.self_model,w=S.world;syncSpeed();
+ const st=S.story;$('story').style.display=st?'block':'none';
+ if(st){$('storystep').textContent=st.done?'GUIDED DEMO · complete':`GUIDED DEMO · step ${st.step}`;$('storycap').textContent=st.caption;$('storydet').textContent=st.detail}
+ $('tick').textContent='tick '+a.tick;$('phase').textContent=a.phase;$('pause').textContent=S.paused?'Resume':'Pause';
+ const f=w.faults,fl=[];if(f.delay)fl.push(`delay ${f.delay}`);if(f.vision_bias[0]||f.vision_bias[1])fl.push('vision bias');if(f.vision_noise)fl.push('vision noise');if(f.motor_block)fl.push('motors blocked');if(w.tool_attached)fl.push('tool attached');
+ $('faults').innerHTML='Hidden ground truth: '+(fl.length?`<span class="warn">${fl.join(', ')}</span>`:'no faults');
+ $('narr').innerHTML=(a.situation.narration.length?a.situation.narration:['Nothing in focus right now.']).map(n=>`<div class="narr">${esc(n)}</div>`).join('')+
+  `<div class="sub">${a.situation.edges.length} relations · ${Object.keys(a.situation.nodes).length} nodes. Decisions read these relations; the sentences are rendered from them afterwards.</div>`;
+ const inq=a.inquiry;$('inqstate').textContent=a.inquiry_active?'investigating':(inq?'last inquiry':'none yet');$('inqstate').className='tag '+(a.inquiry_active?'warn':'');
+ if(inq){const best=Object.entries(inq.posterior).sort((x,y)=>y[1]-x[1])[0][0];
+  $('hyps').innerHTML=`<div class="sub">Trigger: <b>${esc(inq.trigger)}</b>${inq.conclusion?` → conclusion <b>${esc(inq.conclusion)}</b>`:''}${inq.revision?` · <span class="ok">${esc(inq.revision)}</span>`:''}</div>`+
+   Object.entries(inq.posterior).map(([h,p])=>`<div class="hyp"><span>${esc(h.replace(/_/g,' '))}</span>${bar(p,h===best?'var(--acc)':'#35507f')}<span>${p.toFixed(2)}</span></div>`).join('');
+  $('steps').innerHTML=inq.steps.map(s=>`<div><span class="tag">${esc(s.kind)}</span> ${esc(s.detail)}</div>`).join('');}
+ else{$('hyps').innerHTML='<div class="sub">No surprise investigated yet.</div>';$('steps').innerHTML=''}
+ $('journal').innerHTML=a.journal.slice().reverse().map(j=>`<div><span class="t">${j.tick}</span>${esc(j.text)}</div>`).join('');
+ $('frozen').innerHTML=sm.frozen?'<span class="tag bad">FROZEN</span>':'<span class="tag ok">revisable</span>';
+ const kv={'predictions from':a.predictions_from,'motor delay (believed)':sm.delay+' ticks','reach (believed)':sm.reach,'max speed':sm.max_speed,'motors working':sm.motor_ok,'vision calibration offset':JSON.stringify(sm.vision_offset),'vision reliability':sm.vision_reliability,'advisor (LLM) trust':a.advisor_trust,'prediction influence':JSON.stringify(a.influence),'condition':S.condition};
+ $('sm').innerHTML=Object.entries(kv).map(([k,v])=>`<div>${esc(k)}</div><div>${esc(v)}</div>`).join('');
+ $('chan').innerHTML='<tr><th>signal</th><th>learned role</th><th>agency</th><th>reliability</th><th>attention</th></tr>'+Object.values(sm.channels).map(c=>`<tr><td>${esc(c.name)}</td><td class="${c.role}">${esc(c.role)}${c.radius?` (r=${c.radius})`:''}</td><td>${c.agency}</td><td>${bar(c.reliability||0)}</td><td>${bar(c.attention||0,'var(--vio)')}</td></tr>`).join('');
+ const rows=[];for(const [ctx,opts] of Object.entries(a.metacog)){const best=Object.entries(opts).sort((x,y)=>y[1].value-x[1].value)[0][0];rows.push(`<tr><td>${esc(ctx)}</td><td>${Object.entries(opts).map(([o,v])=>`<span class="tag" style="${o===best?'border-color:var(--acc)':''}">${esc(o)} ${v.value.toFixed(2)}·${v.n}</span>`).join(' ')}</td></tr>`)}
+ $('meta').innerHTML='<tr><th>context</th><th>option value · uses</th></tr>'+rows.join('');
+ $('calib').textContent=a.calibration==null?'Calibration: not enough thinking episodes yet.':`Calibration (predicted vs realized benefit of thinking): r = ${a.calibration.toFixed(2)}`;
+ $('trace').innerHTML=a.trace.slice().reverse().map(t=>`<div><span class="t">${t.tick}</span><b>${esc(t.param)}</b> ${esc(JSON.stringify(t.old))} → ${esc(JSON.stringify(t.new))} <span class="sub">[${esc(t.rule)}] ${esc(t.cause)}</span></div>`).join('');
+ $('tasks').innerHTML='<tr><th>task</th><th>result</th><th>failed grips</th><th>thought first</th><th>inquiries</th></tr>'+a.tasks.slice().reverse().map(t=>`<tr><td>${esc(t.kind)} ${esc(t.object)}</td><td class="${t.success?'ok':(t.declined?'warn':'bad')}">${t.success?'success':(t.declined?'declined (out of reach)':'failed')}</td><td>${t.misses}</td><td>${esc(t.thought)}</td><td>${esc(t.inquiries.join(', '))}</td></tr>`).join('');
+ const m=a.memory;$('mem').innerHTML=`<div class="sub">Retrieval relevance (plastic): ${Object.entries(m.relevance).map(([k,v])=>`${esc(k)} ${v}`).join(' · ')}</div>`+
+  `<table><tr><th>tick</th><th>episode diagnosis</th><th>params</th></tr>${m.episodes.slice().reverse().map(e=>`<tr><td>${e.tick}</td><td>${esc(e.diagnosis)}</td><td>${esc(JSON.stringify(e.params))}</td></tr>`).join('')}</table>`+
+  `<div class="sub" style="margin-top:6px">Placements: ${Object.entries(m.placements).map(([k,v])=>`${esc(k)} by ${esc(v.by)} @t${v.tick}`).join(' · ')||'none'}</div>`;
+ draw();
+}
+async function poll(){try{S=await(await fetch('/api/state')).json();
+ if(!$('cond').options.length){$('cond').innerHTML=S.conditions.map(c=>`<option ${c===S.condition?'selected':''}>${c}</option>`).join('')}
+ render()}catch(e){$('phase').textContent='offline'}setTimeout(poll,250)}
+poll();
+</script></body></html>

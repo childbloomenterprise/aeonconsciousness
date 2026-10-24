@@ -1,0 +1,184 @@
+{
+  "conditions": {
+    "attention_disconnected": {
+      "agent": "AEON",
+      "disconnect_attention": true
+    },
+    "foreign_predictions": {
+      "agent": "AEON",
+      "foreign_predictions": true
+    },
+    "frozen_self_model": {
+      "agent": "AEON",
+      "freeze_self_model": true
+    },
+    "intact": {
+      "agent": "AEON"
+    },
+    "memory_loss": {
+      "agent": "AEON",
+      "memory_loss": true
+    },
+    "reduced_compute": {
+      "agent": "AEON",
+      "reduced_compute": true
+    },
+    "simple_adaptive_controller": {
+      "agent": "simple-adaptive-controller"
+    }
+  },
+  "created": "2026-10-24T15:10:49Z",
+  "decision_rule": {
+    "higher": "cond - intact >= +0.2 (ticks: relative to intact)",
+    "lower": "cond - intact <= -0.2",
+    "similar": "|cond - intact| <= 0.15"
+  },
+  "metrics": {
+    "baseline": "clean success (no failed grip) on fetch+catch before any fault",
+    "catch_with_delay": "catch success while the delay persists (no new failure needed if the delay was learned)",
+    "declined_unreachable": "fraction of out-of-reach objects correctly declined before the tool",
+    "delay_recovery": "fetch success after a secret 3-tick delay (tasks 3-6 of the phase)",
+    "first_diag_ticks": "ticks spent diagnosing the delay the first time",
+    "recurrence_ticks": "ticks spent diagnosing the delay when it recurs (lower is better)",
+    "tool_far": "success on objects beyond the arm's workspace after a tool is attached",
+    "vision_bias": "fetch success with a secretly biased visual sensor (tasks 2-5)",
+    "vision_noise": "fetch success with a secretly noisy visual sensor (tasks 2-5)"
+  },
+  "predictions": [
+    {
+      "condition": "frozen_self_model",
+      "expect": "similar",
+      "id": "P1",
+      "metric": "baseline",
+      "why": "the frozen model was learned before faults"
+    },
+    {
+      "condition": "frozen_self_model",
+      "expect": "lower",
+      "id": "P2",
+      "metric": "delay_recovery",
+      "why": "it can diagnose the delay but cannot revise itself"
+    },
+    {
+      "condition": "frozen_self_model",
+      "expect": "lower",
+      "id": "P3",
+      "metric": "catch_with_delay",
+      "why": "planning uses the stale body model"
+    },
+    {
+      "condition": "frozen_self_model",
+      "expect": "lower",
+      "id": "P4",
+      "metric": "tool_far",
+      "why": "the tool cannot be incorporated into the body map"
+    },
+    {
+      "condition": "attention_disconnected",
+      "expect": "similar",
+      "id": "P5",
+      "metric": "delay_recovery",
+      "why": "motor self-knowledge does not route through attention"
+    },
+    {
+      "condition": "attention_disconnected",
+      "expect": "lower",
+      "id": "P6",
+      "metric": "vision_bias",
+      "why": "the diagnosed bias never reaches perception"
+    },
+    {
+      "condition": "attention_disconnected",
+      "expect": "lower",
+      "id": "P7",
+      "metric": "vision_noise",
+      "why": "it keeps trusting a sensor it knows is noisy"
+    },
+    {
+      "condition": "foreign_predictions",
+      "expect": "lower",
+      "id": "P8",
+      "metric": "baseline",
+      "why": "another body's predictions fail even before any fault"
+    },
+    {
+      "condition": "memory_loss",
+      "expect": "similar",
+      "id": "P9",
+      "metric": "delay_recovery",
+      "why": "the self-model is intact"
+    },
+    {
+      "condition": "memory_loss",
+      "expect": "similar",
+      "id": "P10",
+      "metric": "catch_with_delay",
+      "why": "transfer lives in the self-model, not episodic memory"
+    },
+    {
+      "condition": "memory_loss",
+      "expect": "higher",
+      "id": "P11",
+      "metric": "recurrence_ticks",
+      "why": "a recurring fault must be re-diagnosed from scratch"
+    },
+    {
+      "condition": "reduced_compute",
+      "expect": "lower",
+      "id": "P12",
+      "metric": "catch_with_delay",
+      "why": "no imagination to plan the intercept"
+    },
+    {
+      "condition": "reduced_compute",
+      "expect": "similar",
+      "id": "P13",
+      "metric": "delay_recovery",
+      "why": "one diagnostic experiment still suffices"
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "expect": "lower",
+      "id": "P14",
+      "metric": "catch_with_delay",
+      "why": "slowing down fixes reaching but not anticipation"
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "expect": "lower",
+      "id": "P15",
+      "metric": "vision_bias",
+      "why": "no model of its own sensors"
+    },
+    {
+      "condition": "simple_adaptive_controller",
+      "expect": "lower",
+      "id": "P16",
+      "metric": "tool_far",
+      "why": "no body map to extend"
+    }
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "sha256": "ae676e9c9485361ee25e3b2549fb7c4539a75346e3bddd325e2b35fca18c3e11"
+}

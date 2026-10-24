@@ -1,5 +1,27 @@
 # AEON World + Codebee Self-Improvement Core
 
+## AEON developmental self-model (Devin Hacks Kochi)
+
+`aeon_develop` is a small embodied agent that discovers its own body from unlabeled
+sensors. It entertains competing explanations when surprised and runs the
+experiment that best separates them. It treats thinking as an action, keeps one
+connected representation of the present, and logs every bounded internal change.
+A pre-registered ablation experiment (20 seeds, 15/16 predictions held) tests
+whether these abilities depend on one revisable self-model. Standard library
+only, no keys:
+
+**Quickstart:** double-click `run_demo.bat` (Windows) or run `./run_demo.sh`.
+Then open http://127.0.0.1:8770 and click **▶ Guided demo**.
+
+```bash
+python -m aeon_develop demo
+python -m aeon_develop serve --port 8770
+python -m aeon_develop experiment --seeds 20
+```
+
+See [developmental self-model](docs/AEON_DEVELOPMENTAL_SELF_MODEL.md) and the
+[hackathon pitch kit](docs/HACKATHON_PITCH.md).
+
 ## AEON Enterprise 0.4
 
 Live private console: [AEON Enterprise](https://aeon-enterprise.childbloomenterprise.chatgpt.site).

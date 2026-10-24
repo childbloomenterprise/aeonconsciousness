@@ -28,6 +28,7 @@ deployment = ["playwright==1.63.0"]
 
 [project.scripts]
 aeon-world = "aeon_world.cli:main"
+aeon-develop = "aeon_develop.__main__:main"
 aeon = "aeon_worker.cli:main"
 aeon-enterprise-worker = "aeon_enterprise.worker:main"
 aeon-enterprise-service = "aeon_enterprise.service:main"
@@ -36,7 +37,8 @@ aeon-enterprise-service = "aeon_enterprise.service:main"
 aeon_personal_worker = "aeon_worker.nat_plugin"
 
 [tool.setuptools.packages.find]
-include = ["codebee_improve*", "aeon_world*", "aeon_kernel*", "agent_lab*", "aeon_worker*", "aeon_enterprise*"]
+include = ["codebee_improve*", "aeon_develop*", "aeon_world*", "aeon_kernel*", "agent_lab*", "aeon_worker*", "aeon_enterprise*"]
 
 [tool.setuptools.package-data]
 agent_lab = ["*.json", "adapters/*.py"]
+aeon_develop = ["static/*.html"]

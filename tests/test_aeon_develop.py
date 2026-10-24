@@ -8,6 +8,7 @@ from aeon_develop.experiment import PREDICTIONS, evaluate, preregister, run_cond
 from aeon_develop.inquiry import EXPERIMENTS, HYPOTHESES, TIMING, expected_info_gain
 from aeon_develop.plasticity import BoundedParam, Trace
 from aeon_develop.session import Session
+from aeon_develop.story import GuidedStory
 
 
 def developed(seed=0, **cfg):
@@ -118,6 +119,19 @@ class ExperimentTests(unittest.TestCase):
         summary["frozen_self_model"] = frozen
         results = {p["id"]: p for p in evaluate(summary)}
         self.assertTrue(results["P2"]["held"])
+
+
+class GuidedStoryTests(unittest.TestCase):
+    def test_guided_demo_runs_every_scene_to_completion(self):
+        s = Session(0, AeonConfig(seed=0), live=True)
+        story = GuidedStory(s)
+        while not story.done and s.agent.n < 8000:
+            s.step()
+            story.tick()
+        self.assertTrue(story.done)
+        self.assertTrue(all(r.endswith("True") for r in story.results), story.results)
+        far = [t for t in s.agent.task_log if t.kind == "far"]
+        self.assertTrue(far[0].declined and far[-1].success)
 
 
 if __name__ == "__main__":

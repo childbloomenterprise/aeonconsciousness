@@ -13,6 +13,7 @@ from typing import Any
 from .agent import AeonConfig
 from .experiment import CONDITIONS
 from .session import Session
+from .story import GuidedStory
 
 STATIC = Path(__file__).with_name("static")
 
@@ -22,6 +23,7 @@ class LiveRunner:
         self.lock = threading.Lock()
         self.tps = tps
         self.paused = False
+        self.story: GuidedStory | None = None
         self.reset(seed, condition)
         threading.Thread(target=self._loop, daemon=True).start()
 
@@ -31,6 +33,14 @@ class LiveRunner:
         with self.lock:
             self.condition = condition
             self.session = Session(seed, cfg, agent_cls=spec["cls"], live=True)
+            self.story = None
+            self.paused = False
+
+    def start_story(self, seed: int) -> None:
+        self.reset(seed, "intact")
+        with self.lock:
+            self.story = GuidedStory(self.session)
+            self.tps = max(self.tps, 25.0)
 
     def _loop(self) -> None:
         while True:
@@ -38,6 +48,8 @@ class LiveRunner:
             if not self.paused:
                 with self.lock:
                     self.session.step()
+                    if self.story:
+                        self.story.tick()
             time.sleep(max(0.0, 1.0 / max(self.tps, 0.5) - (time.time() - start)))
 
     def state(self) -> dict[str, Any]:
@@ -58,6 +70,10 @@ class LiveRunner:
                 "truth_channels": truth,
                 "agent": agent.snapshot(),
                 "interventions": s.interventions[-10:],
+                "story": None if self.story is None else {
+                    "step": self.story.step, "caption": self.story.caption, "detail": self.story.detail,
+                    "done": self.story.done, "results": self.story.results,
+                },
             }
 
 
@@ -104,6 +120,8 @@ def make_handler(runner: LiveRunner) -> type[BaseHTTPRequestHandler]:
                         runner.paused = False
                     elif action == "speed":
                         runner.tps = float(body.get("tps", 15))
+                    elif action == "story":
+                        runner.start_story(int(body.get("seed", 0)))
                     elif action == "reset":
                         runner.reset(int(body.get("seed", 0)), str(body.get("condition", "intact")))
                     else:
